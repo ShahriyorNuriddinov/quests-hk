@@ -13,23 +13,30 @@ const upload = multer({
 })
 
 router.get('/', async (_, res) => {
-  res.json(await findApprovedReviews())
+  try {
+    res.json(await findApprovedReviews())
+  } catch { res.status(500).json({ error: 'Server error' }) }
 })
 
 router.post('/', requireAuth, upload.array('photos', 4), async (req, res) => {
-  const { questId, rating, text } = req.body
-  if (!questId || !rating || !text) return res.status(400).json({ error: 'Missing fields' })
+  try {
+    const { questId, rating, text } = req.body
+    if (!questId || !rating || !text) return res.status(400).json({ error: 'Missing fields' })
 
-  const hasPurchased = req.user.purchasedQuests.includes(questId)
-  if (!hasPurchased && req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Purchase required' })
+    const hasPurchased = req.user.purchasedQuests.includes(questId)
+    if (!hasPurchased && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Purchase required' })
+    }
+
+    const photos = await Promise.all(
+      (req.files || []).map(f => uploadFile(f.buffer, f.mimetype, 'reviews'))
+    )
+    const review = await createReview({ userId: req.user.id, questId, rating: parseInt(rating), text, photos })
+    res.status(201).json(review)
+  } catch (err) {
+    console.error('review error:', err)
+    res.status(500).json({ error: 'Server error' })
   }
-
-  const photos = await Promise.all(
-    (req.files || []).map(f => uploadFile(f.buffer, f.mimetype, 'reviews'))
-  )
-  const review = await createReview({ userId: req.user.id, questId, rating: parseInt(rating), text, photos })
-  res.status(201).json(review)
 })
 
 export default router

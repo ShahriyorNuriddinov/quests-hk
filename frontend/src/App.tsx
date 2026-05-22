@@ -18,6 +18,7 @@ import QuestReview from './pages/QuestReview'
 import Reviews from './pages/Reviews'
 import Contacts from './pages/Contacts'
 import QuestPay from './pages/QuestPay'
+import Payment from './pages/Payment'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -48,6 +49,9 @@ export default function App() {
           } />
           <Route path="/quest/:id/review" element={
             <ProtectedRoute><QuestReview /></ProtectedRoute>
+          } />
+          <Route path="/payment" element={
+            <ProtectedRoute><Payment /></ProtectedRoute>
           } />
           <Route path="/admin" element={
             <AdminRoute><AdminStats /></AdminRoute>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 
@@ -7,6 +7,8 @@ export default function Auth() {
   const { t } = useTranslation()
   const { sendCode, verifyCode } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const returnTo = searchParams.get('from') || '/quests'
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [step, setStep] = useState<'email' | 'code'>('email')
@@ -33,7 +35,7 @@ export default function Auth() {
     setLoading(true)
     try {
       await verifyCode(email, code)
-      navigate('/quests')
+      navigate(returnTo, { replace: true })
     } catch {
       setError(t('auth.codeError'))
     } finally {
@@ -76,7 +78,7 @@ export default function Auth() {
               placeholder="000000"
               maxLength={6}
               required
-              className="border border-gray-200 rounded-xl px-4 py-3 text-base text-center tracking-widest text-xl focus:outline-none focus:border-[#FFD600] focus:ring-2 focus:ring-[#FFD600]/30"
+              className="border border-gray-200 rounded-xl px-4 py-3 text-xl text-center tracking-widest focus:outline-none focus:border-[#FFD600] focus:ring-2 focus:ring-[#FFD600]/30"
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button type="submit" disabled={loading} className="btn-yellow disabled:opacity-60">

@@ -19,19 +19,19 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="bg-white px-4 py-4 sticky top-0 z-10 border-b border-gray-100">
-        <h1 className="text-xl font-extrabold">Profile</h1>
+        <h1 className="text-xl font-extrabold">Профиль</h1>
       </div>
 
       <div className="px-4 py-6 flex flex-col gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center text-2xl font-bold text-white">
+            <div className="w-14 h-14 rounded-full bg-[#FFD600] flex items-center justify-center text-2xl font-bold text-black">
               {user.email[0].toUpperCase()}
             </div>
             <div>
               <p className="font-bold text-base">{user.email}</p>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                {user.role === 'admin' ? 'Admin' : 'User'}
+                {user.role === 'admin' ? 'Администратор' : 'Пользователь'}
               </span>
             </div>
           </div>
@@ -39,14 +39,14 @@ export default function Profile() {
 
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50">
-            <p className="text-sm text-gray-500">Purchased quests</p>
+            <p className="text-sm text-gray-500">Купленных квестов</p>
             <p className="font-bold text-lg">{user.purchasedQuests.length}</p>
           </div>
           <button
             onClick={() => navigate('/my-quests')}
-            className="w-full px-5 py-4 text-left text-sm font-medium text-yellow-600 hover:bg-gray-50 transition-colors"
+            className="w-full px-5 py-4 text-left text-sm font-medium text-[#B8A000] hover:bg-gray-50 transition-colors"
           >
-            My Quests →
+            Мои квесты →
           </button>
         </div>
 
@@ -56,7 +56,7 @@ export default function Profile() {
               onClick={() => navigate('/admin')}
               className="w-full px-5 py-4 text-left text-sm font-medium text-purple-600 hover:bg-gray-50 transition-colors"
             >
-              ⚙️ Admin Panel →
+              ⚙️ Панель администратора →
             </button>
           </div>
         )}
@@ -65,7 +65,7 @@ export default function Profile() {
           onClick={handleLogout}
           className="w-full bg-red-50 text-red-600 font-semibold py-3.5 rounded-2xl hover:bg-red-100 transition-colors"
         >
-          Log Out
+          Выйти
         </button>
       </div>
 

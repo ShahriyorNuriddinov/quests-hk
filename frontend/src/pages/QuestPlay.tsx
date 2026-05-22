@@ -98,6 +98,10 @@ export default function QuestPlay() {
       } else if (progress) {
         setCurrent(progress.current ?? -1)
       }
+    }).catch(err => {
+      if (err?.response?.status === 403) {
+        navigate(`/quest/${id}/pay`, { replace: true })
+      }
     }).finally(() => setLoading(false))
   }, [id])
 

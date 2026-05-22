@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { Clock, Route, Gauge, MapPin, HelpCircle, Wallet, Rocket, Flag, Users, Star } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -28,15 +28,22 @@ function StarRow({ n, size = 12 }: { n: number; size?: number }) {
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const [quest, setQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(true)
   const [reviews, setReviews] = useState<Review[]>([])
 
+  const paymentSuccess = searchParams.get('status') === 'success'
+
   useEffect(() => {
     api.get(`/quests/${id}`).then(r => setQuest(r.data)).finally(() => setLoading(false))
     api.get(`/quests/${id}/reviews`).then(r => setReviews(r.data))
   }, [id])
+
+  useEffect(() => {
+    if (paymentSuccess) navigate(`/quest/${id}/play`, { replace: true })
+  }, [paymentSuccess, id])
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -158,7 +165,7 @@ export default function QuestDetail() {
               Начать квест →
             </button>
           ) : (
-            <button onClick={() => { if (!user) { navigate('/auth'); return } navigate(`/quest/${id}/pay`) }}
+            <button onClick={() => { if (!user) { navigate(`/auth?from=/quest/${id}/pay`); return } navigate(`/quest/${id}/pay`) }}
               className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
               Купить — {quest.price} {quest.currency}
             </button>

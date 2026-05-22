@@ -29,7 +29,7 @@ export default function QuestList() {
   }, [])
 
   function handleBuy(questId: string) {
-    if (!user) { navigate('/auth'); return }
+    if (!user) { navigate(`/auth?from=/quest/${questId}/pay`); return }
     navigate(`/quest/${questId}/pay`)
   }
 

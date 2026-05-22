@@ -25,6 +25,19 @@ async function getAirwallexToken() {
   return data.token
 }
 
+router.get('/intent/:id', requireAuth, async (req, res) => {
+  try {
+    const awToken = await getAirwallexToken()
+    const r = await fetch(`${airwallexBase()}/pa/payment_intents/${req.params.id}`, {
+      headers: { Authorization: `Bearer ${awToken}` },
+    })
+    const intent = await r.json()
+    res.json({ status: intent.status })
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch intent' })
+  }
+})
+
 router.get('/promo/:code', requireAuth, async (req, res) => {
   const promo = await findPromoByCode(req.params.code, true)
   if (!promo || promo.usedCount >= promo.maxUses) {
