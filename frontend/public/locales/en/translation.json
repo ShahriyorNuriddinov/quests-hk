@@ -1,0 +1,44 @@
+{
+  "back": "Back",
+  "logout": "Logout",
+  "notFound": "Not found",
+  "auth": {
+    "title": "Sign In",
+    "enterEmail": "Enter your email to sign in",
+    "sendCode": "Send Code",
+    "enterCode": "Enter the code sent to",
+    "confirm": "Confirm",
+    "changeEmail": "Change email",
+    "error": "Error. Please try again.",
+    "codeError": "Wrong code. Please try again."
+  },
+  "nav": {
+    "quests": "Quests",
+    "myQuests": "My Quests",
+    "profile": "Profile"
+  },
+  "quest": {
+    "about": "What awaits you?",
+    "duration": "Duration",
+    "distance": "Distance",
+    "difficulty": "Difficulty",
+    "locations": "Locations",
+    "places": "interesting places",
+    "questions": "Questions",
+    "times": "times to think",
+    "transport": "Transport & tickets",
+    "startPoint": "Starting point",
+    "endPoint": "End of route",
+    "buy": "Buy",
+    "play": "Start Quest",
+    "completed": "people completed",
+    "next": "Next",
+    "finish": "Finish Quest",
+    "noSteps": "No steps found",
+    "openMaps": "Open in Maps"
+  },
+  "myQuests": {
+    "empty": "You have no quests yet",
+    "browse": "Browse Quests"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "back": "返回",
+  "logout": "退出",
+  "notFound": "未找到",
+  "auth": {
+    "title": "登录",
+    "enterEmail": "输入您的电子邮件登录",
+    "sendCode": "发送验证码",
+    "enterCode": "输入发送到以下地址的验证码",
+    "confirm": "确认",
+    "changeEmail": "更改邮箱",
+    "error": "错误，请重试。",
+    "codeError": "验证码错误，请重试。"
+  },
+  "nav": {
+    "quests": "探索",
+    "myQuests": "我的探索",
+    "profile": "个人"
+  },
+  "quest": {
+    "about": "等待您的是？",
+    "duration": "时长",
+    "distance": "距离",
+    "difficulty": "难度",
+    "locations": "地点",
+    "places": "个有趣的地方",
+    "questions": "问题",
+    "times": "次思考",
+    "transport": "交通和门票",
+    "startPoint": "起点",
+    "endPoint": "终点",
+    "buy": "购买",
+    "play": "开始探索",
+    "completed": "人已完成",
+    "next": "下一步",
+    "finish": "完成探索",
+    "noSteps": "未找到步骤",
+    "openMaps": "在地图中打开"
+  },
+  "myQuests": {
+    "empty": "您还没有探索",
+    "browse": "浏览探索"
+  }
+}

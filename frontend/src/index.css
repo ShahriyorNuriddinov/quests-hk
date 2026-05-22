@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-white text-gray-900 font-sans;
+    overscroll-behavior: none;
+  }
+}
+
+@layer components {
+  .btn-yellow {
+    @apply bg-[#FFD600] text-black font-semibold rounded-full px-8 py-4 text-base active:scale-95 transition-transform w-full text-center block;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm p-4;
+  }
+}
