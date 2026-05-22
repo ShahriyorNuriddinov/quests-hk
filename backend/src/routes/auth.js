@@ -1,8 +1,14 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import nodemailer from 'nodemailer'
+import { createClient } from '@supabase/supabase-js'
 import { findUserByEmail, upsertUserByEmail, clearUserOtp } from '../models/User.js'
 import { requireAuth } from '../middleware/auth.js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY,
+)
 
 const router = Router()
 
@@ -57,6 +63,16 @@ router.post('/verify-code', async (req, res) => {
 
   await clearUserOtp(user.id)
 
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '90d' })
+  res.json({ token, user: { id: user.id, email: user.email, role: user.role, purchasedQuests: user.purchasedQuests } })
+})
+
+router.post('/supabase-sync', async (req, res) => {
+  const { access_token } = req.body
+  if (!access_token) return res.status(400).json({ error: 'Missing token' })
+  const { data: { user: sbUser }, error } = await supabase.auth.getUser(access_token)
+  if (error || !sbUser) return res.status(401).json({ error: 'Invalid token' })
+  const user = await upsertUserByEmail(sbUser.email, { otpCode: null, otpExpires: null })
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '90d' })
   res.json({ token, user: { id: user.id, email: user.email, role: user.role, purchasedQuests: user.purchasedQuests } })
 })

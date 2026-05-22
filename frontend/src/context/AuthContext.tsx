@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import api from '../api/client'
+import { supabase } from '../supabase'
 
 interface User {
   id: string
@@ -34,11 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function sendCode(email: string) {
-    await api.post('/auth/send-code', { email })
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
+    if (error) throw error
   }
 
   async function verifyCode(email: string, code: string) {
-    const r = await api.post('/auth/verify-code', { email, code })
+    const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
+    if (error) throw error
+    const r = await api.post('/auth/supabase-sync', { access_token: data.session!.access_token })
     localStorage.setItem('token', r.data.token)
     setUser(r.data.user)
   }

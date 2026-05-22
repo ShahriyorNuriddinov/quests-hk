@@ -31,16 +31,16 @@ export async function findUserByEmail(email) {
   return toUser(rows[0])
 }
 
-export async function upsertUserByEmail(email, { otpCode, otpExpires }) {
+export async function upsertUserByEmail(email, { otpCode, otpExpires } = {}) {
   const { rows } = await pool.query(`
     INSERT INTO users (email, otp_code, otp_expires)
     VALUES ($1, $2, $3)
     ON CONFLICT (email) DO UPDATE SET
-      otp_code = $2,
-      otp_expires = $3,
+      otp_code = COALESCE($2, users.otp_code),
+      otp_expires = COALESCE($3, users.otp_expires),
       updated_at = NOW()
     RETURNING *
-  `, [email.toLowerCase(), otpCode, otpExpires])
+  `, [email.toLowerCase(), otpCode ?? null, otpExpires ?? null])
   return toUser(rows[0])
 }
 
