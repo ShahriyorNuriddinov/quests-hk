@@ -51,8 +51,8 @@ router.post('/checkout', requireAuth, async (req, res) => {
     }
   }
 
-  // Dev mode: grant access directly without real payment
-  if (process.env.NODE_ENV !== 'production' && !process.env.AIRWALLEX_CLIENT_ID) {
+  // Free quest or no payment keys — grant access directly
+  if (amount <= 0 || !process.env.AIRWALLEX_CLIENT_ID) {
     await addPurchasedQuest(req.user.id, questId)
     if (appliedPromo) await incrementPromoUsed(appliedPromo.id)
     return res.json({ url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/quest/${questId}?status=success` })
