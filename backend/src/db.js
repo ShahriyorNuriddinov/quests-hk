@@ -79,6 +79,11 @@ export async function initDb() {
     ALTER TABLE user_quests ADD COLUMN IF NOT EXISTS purchased_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
     ALTER TABLE user_quests ADD COLUMN IF NOT EXISTS progress JSONB DEFAULT NULL;
     ALTER TABLE user_quests ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE;
+
+    CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
+    CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
+    CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);
+    CREATE INDEX IF NOT EXISTS idx_user_quests_quest_id ON user_quests(quest_id);
   `)
   console.log('Database initialized')
 }

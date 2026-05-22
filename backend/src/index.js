@@ -12,12 +12,16 @@ import paymentRoutes from './routes/payments.js'
 import adminRoutes from './routes/admin.js'
 import reviewRoutes from './routes/reviews.js'
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET env variable is not set')
+  process.exit(1)
+}
+
 const app = express()
 
 app.use(helmet())
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json())
-app.use('/uploads', express.static('uploads'))
 
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }), authRoutes)
 app.use('/api/quests', questRoutes)

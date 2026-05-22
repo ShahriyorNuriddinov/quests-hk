@@ -7,8 +7,6 @@ function toUser(row) {
     _id: row.id,
     email: row.email,
     role: row.role,
-    otpCode: row.otp_code,
-    otpExpires: row.otp_expires,
     purchasedQuests: row.purchased_quests || [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -26,29 +24,13 @@ export async function findUserById(id) {
   return toUser(rows[0])
 }
 
-export async function findUserByEmail(email) {
-  const { rows } = await pool.query(`${WITH_QUESTS} WHERE u.email = $1 GROUP BY u.id`, [email.toLowerCase()])
-  return toUser(rows[0])
-}
-
-export async function upsertUserByEmail(email, { otpCode, otpExpires } = {}) {
+export async function upsertUserByEmail(email) {
   const { rows } = await pool.query(`
-    INSERT INTO users (email, otp_code, otp_expires)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (email) DO UPDATE SET
-      otp_code = COALESCE($2, users.otp_code),
-      otp_expires = COALESCE($3, users.otp_expires),
-      updated_at = NOW()
+    INSERT INTO users (email) VALUES ($1)
+    ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
     RETURNING *
-  `, [email.toLowerCase(), otpCode ?? null, otpExpires ?? null])
+  `, [email.toLowerCase()])
   return toUser(rows[0])
-}
-
-export async function clearUserOtp(id) {
-  await pool.query(
-    'UPDATE users SET otp_code = NULL, otp_expires = NULL, updated_at = NOW() WHERE id = $1',
-    [id]
-  )
 }
 
 export async function addPurchasedQuest(userId, questId) {

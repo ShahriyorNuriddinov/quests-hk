@@ -12,8 +12,15 @@ interface Step {
   image?: string
   options?: string[]
   answer?: string
+  correctAnswer?: number
   hint?: string
   location?: { lat: number; lng: number; address: string }
+}
+
+function getAnswer(step: Step): string {
+  if (step.answer) return step.answer
+  if (step.correctAnswer !== undefined && step.options) return step.options[step.correctAnswer] ?? ''
+  return ''
 }
 
 function formatElapsed(ms: number) {
@@ -192,7 +199,8 @@ export default function QuestPlay() {
           {step.content && <p className="text-sm text-gray-400 italic mb-6">{step.content}</p>}
           <div className="flex flex-col gap-3">
             {(step.options || []).map(opt => {
-              const isCorrect = opt === step.answer
+              const correctAns = getAnswer(step)
+              const isCorrect = opt === correctAns
               const isSelected = opt === selected
               let cls = 'rounded-2xl px-5 py-4 text-sm font-semibold text-left transition-all border-2 '
               if (!revealed) cls += 'border-gray-100 bg-gray-50 text-gray-800 active:border-[#FFD600]'
@@ -200,7 +208,7 @@ export default function QuestPlay() {
               else if (isSelected) cls += 'border-red-300 bg-red-50 text-red-600'
               else cls += 'border-gray-100 bg-gray-50 text-gray-300'
               return (
-                <button key={opt} onClick={() => choose(opt, step.answer || '')} className={cls}>{opt}</button>
+                <button key={opt} onClick={() => choose(opt, correctAns)} className={cls}>{opt}</button>
               )
             })}
           </div>

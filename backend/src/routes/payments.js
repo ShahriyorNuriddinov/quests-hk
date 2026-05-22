@@ -87,6 +87,14 @@ router.post('/checkout', requireAuth, async (req, res) => {
 router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const event = JSON.parse(req.body)
+    // Verify the event came from Airwallex via shared webhook secret
+    const webhookSecret = process.env.AIRWALLEX_WEBHOOK_SECRET
+    if (webhookSecret) {
+      const signature = req.headers['x-airwallex-signature']
+      if (!signature || signature !== webhookSecret) {
+        return res.status(401).json({ error: 'Invalid signature' })
+      }
+    }
     if (event.name === 'payment_intent.succeeded') {
       const { userId, questId, promoCode } = event.data?.object?.metadata || {}
       if (userId && questId) {
