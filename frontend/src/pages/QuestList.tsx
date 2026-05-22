@@ -4,6 +4,7 @@ import { Clock, MapPin, Star } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
+import LangSwitcher from '../components/LangSwitcher'
 
 interface Quest {
   _id: string
@@ -37,10 +38,13 @@ export default function QuestList() {
     <div className="min-h-screen bg-gray-50 pb-28">
       <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100">
         <h1 className="text-xl font-extrabold tracking-tight">🇭🇰 QUESTS HK</h1>
-        <Link to="/reviews" className="flex items-center gap-1 text-xs text-gray-400">
-          <Star size={12} fill="#FFD600" strokeWidth={0} />
-          Отзывы
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/reviews" className="flex items-center gap-1 text-xs text-gray-400">
+            <Star size={12} fill="#FFD600" strokeWidth={0} />
+            Отзывы
+          </Link>
+          <LangSwitcher />
+        </div>
       </div>
 
       <div className="px-4 py-4 max-w-lg mx-auto">

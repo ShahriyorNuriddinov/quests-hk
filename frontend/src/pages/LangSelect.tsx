@@ -1,32 +1,65 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import Onboarding from '../components/Onboarding'
 
+// Google Translate lang codes
 const LANGS = [
-  { code: 'ru', label: 'Русский язык' },
-  { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文' },
+  { code: 'ru', gtCode: null,    label: 'Русский язык', flag: '🇷🇺' },
+  { code: 'en', gtCode: 'en',    label: 'English',      flag: '🇬🇧' },
+  { code: 'zh', gtCode: 'zh-CN', label: '中文',          flag: '🇨🇳' },
 ]
+
+function setGoogleTranslate(gtCode: string | null) {
+  const domain = window.location.hostname
+  if (!gtCode || gtCode === 'ru') {
+    // Clear translation
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain}`
+  } else {
+    document.cookie = `/ru/${gtCode}; path=/; domain=${domain}`
+    document.cookie = `googtrans=/ru/${gtCode}; path=/`
+    document.cookie = `googtrans=/ru/${gtCode}; path=/; domain=.${domain}`
+    // Also try triggering the widget select if loaded
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null
+    if (select) {
+      select.value = gtCode
+      select.dispatchEvent(new Event('change'))
+    }
+  }
+}
 
 export default function LangSelect() {
   const navigate = useNavigate()
-  const { i18n } = useTranslation()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [pending, setPending] = useState<string | null>(null)
 
-  function pick(code: string) {
-    i18n.changeLanguage(code)
-    localStorage.setItem('lang', code)
+  function pick(lang: typeof LANGS[0]) {
+    setPending(lang.code)
+    localStorage.setItem('lang', lang.code)
+    setGoogleTranslate(lang.gtCode)
+
     if (!localStorage.getItem('onboarded')) {
       setShowOnboarding(true)
+      setPending(null)
     } else {
-      navigate('/quests')
+      // Reload so Google Translate activates on the new page
+      if (lang.gtCode) {
+        window.location.href = '/quests'
+      } else {
+        navigate('/quests')
+      }
     }
   }
 
   function doneOnboarding() {
     localStorage.setItem('onboarded', '1')
-    navigate('/quests')
+    const lang = localStorage.getItem('lang') || 'ru'
+    const l = LANGS.find(x => x.code === lang)
+    if (l?.gtCode) {
+      window.location.href = '/quests'
+    } else {
+      navigate('/quests')
+    }
   }
 
   if (showOnboarding) return <Onboarding onDone={doneOnboarding} />
@@ -37,24 +70,31 @@ export default function LangSelect() {
         <div className="text-center">
           <div className="text-3xl mb-1">🇨🇳 🇭🇰 🇲🇴</div>
           <h1 className="text-3xl font-extrabold tracking-tight">QUESTS HK</h1>
+          <p className="text-sm text-gray-400 mt-1">Выберите язык / Select language</p>
         </div>
 
-        <div className="w-full rounded-2xl overflow-hidden shadow-lg aspect-video bg-gray-100">
+        <div className="w-full rounded-2xl overflow-hidden shadow-lg aspect-video bg-gray-100 relative">
           <img
             src="/hero.jpg"
             alt="Quest"
             className="w-full h-full object-cover"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-          <div className="w-full h-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center -mt-[100%]">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center -z-10">
             <span className="text-6xl">🗺️</span>
           </div>
         </div>
 
         <div className="flex flex-col gap-3 w-full">
           {LANGS.map(l => (
-            <button key={l.code} onClick={() => pick(l.code)} className="btn-yellow">
-              {l.label}
+            <button
+              key={l.code}
+              onClick={() => pick(l)}
+              disabled={pending === l.code}
+              className="btn-yellow flex items-center justify-center gap-3 disabled:opacity-60"
+            >
+              <span className="text-xl">{l.flag}</span>
+              <span>{l.label}</span>
             </button>
           ))}
         </div>
