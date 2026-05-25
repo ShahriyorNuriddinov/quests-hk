@@ -27,14 +27,14 @@ interface QuestForm {
   difficulty: string; price: number; currency: string
   locationsCount: number; questionsCount: number; transportCost: string
   startPoint: string; endPoint: string; rating: number
-  status: 'published' | 'draft'
+  status: 'published' | 'draft'; city: string
 }
 
 const EMPTY: QuestForm = {
   title: '', description: '', duration: '', distance: '',
   difficulty: 'Легко', price: 99, currency: 'HK$',
   locationsCount: 0, questionsCount: 0, transportCost: '',
-  startPoint: '', endPoint: '', rating: 5, status: 'draft',
+  startPoint: '', endPoint: '', rating: 5, status: 'draft', city: 'hk',
 }
 
 function newStep(type: Step['type'], order: number): Step {
@@ -244,6 +244,15 @@ export default function AdminQuestEdit() {
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Вопросов</label>
               <input type="number" value={form.questionsCount} onChange={e => set('questionsCount', Number(e.target.value))}
                 className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent" />
+            </div>
+            <div className="px-4 py-3 border-b border-gray-50 col-span-2">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Город</label>
+              <select value={form.city} onChange={e => set('city', e.target.value as never)}
+                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent">
+                <option value="hk">🇭🇰 Hong Kong</option>
+                <option value="macau">🇲🇴 Macau</option>
+                <option value="guangzhou">🇨🇳 Guangzhou</option>
+              </select>
             </div>
             <div className="px-4 py-3">
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Сложность</label>
