@@ -34,19 +34,33 @@ export async function findPromoByCode(code, active) {
 }
 
 export async function createPromoCode(data) {
-  const { rows } = await pool.query(`
-    INSERT INTO promo_codes (code, discount, type, max_uses, active, partner_name, partner_description)
-    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
-  `, [
-    data.code?.toUpperCase(),
-    data.discount,
-    data.type || 'percent',
-    data.maxUses ?? 100,
-    data.active !== false,
-    data.partnerName || '',
-    data.partnerDescription || '',
-  ])
-  return toPromo(rows[0])
+  try {
+    const { rows } = await pool.query(`
+      INSERT INTO promo_codes (code, discount, type, max_uses, active, partner_name, partner_description)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+    `, [
+      data.code?.toUpperCase(),
+      data.discount,
+      data.type || 'percent',
+      data.maxUses ?? 100,
+      data.active !== false,
+      data.partnerName || '',
+      data.partnerDescription || '',
+    ])
+    return toPromo(rows[0])
+  } catch {
+    const { rows } = await pool.query(`
+      INSERT INTO promo_codes (code, discount, type, max_uses, active)
+      VALUES ($1, $2, $3, $4, $5) RETURNING *
+    `, [
+      data.code?.toUpperCase(),
+      data.discount,
+      data.type || 'percent',
+      data.maxUses ?? 100,
+      data.active !== false,
+    ])
+    return toPromo(rows[0])
+  }
 }
 
 export async function updatePromoCode(id, data) {
