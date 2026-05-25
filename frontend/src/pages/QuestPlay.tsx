@@ -429,38 +429,7 @@ export default function QuestPlay() {
 
   // ── PHOTO STEP ──────────────────────────────────────────────
   if (step.type === 'photo') {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <ProgressBar progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} />
-        <div className="flex-1 px-6 py-6 pb-32 flex flex-col max-w-lg mx-auto w-full">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
-              <Camera size={24} className="text-gray-500" />
-            </div>
-            <div>
-              <h2 className="text-xl font-extrabold">{step.title || 'Сделать фото'}</h2>
-            </div>
-          </div>
-          {step.content && (
-            <p className="text-sm text-gray-500 leading-relaxed mb-6 italic">{step.content}</p>
-          )}
-          {step.image && (
-            <div className="rounded-3xl overflow-hidden mb-6 shadow-sm">
-              <img src={step.image} alt="Пример фото" className="w-full h-64 object-cover" />
-            </div>
-          )}
-          <p className="text-xs text-gray-300 text-center">Прикреплять фото не нужно — просто сделайте на память</p>
-        </div>
-        <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
-          <div className="max-w-lg mx-auto">
-            <button onClick={next}
-              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-              {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Готово! Идём дальше →'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
+    return <PhotoStep step={step} progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} onNext={next} />
   }
 
   // ── INFO STEP ─────────────────────────────────────────────────
@@ -483,6 +452,72 @@ export default function QuestPlay() {
           <button onClick={next}
             className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
             {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Далее →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PhotoStep({ step, progress, current, total, onBack, onNext }: {
+  step: Step; progress: number; current: number; total: number; onBack: () => void; onNext: () => void
+}) {
+  const [preview, setPreview] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setPreview(url)
+  }
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      <ProgressBar progress={progress} current={current} total={total} onBack={onBack} />
+      <div className="flex-1 px-6 py-6 pb-32 flex flex-col max-w-lg mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+            <Camera size={24} className="text-gray-500" />
+          </div>
+          <h2 className="text-xl font-extrabold">{step.title || 'Сделать фото'}</h2>
+        </div>
+        {step.content && (
+          <p className="text-sm text-gray-500 leading-relaxed mb-6 italic">{step.content}</p>
+        )}
+
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+
+        {preview ? (
+          <div className="relative rounded-3xl overflow-hidden mb-4 shadow-sm">
+            <img src={preview} alt="Ваше фото" className="w-full h-64 object-cover" />
+            <button
+              onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = '' }}
+              className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
+            >×</button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full border-2 border-dashed border-gray-200 rounded-3xl h-48 flex flex-col items-center justify-center gap-3 mb-4 active:bg-gray-50 transition-colors"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-[#FFD600]/20 flex items-center justify-center">
+              <Camera size={28} className="text-[#FFD600]" />
+            </div>
+            <span className="text-sm font-semibold text-gray-500">Нажмите, чтобы сделать фото</span>
+            <span className="text-xs text-gray-300">или выберите из галереи</span>
+          </button>
+        )}
+
+        {!preview && (
+          <p className="text-xs text-gray-300 text-center">Фото сохранится только на вашем устройстве</p>
+        )}
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
+        <div className="max-w-lg mx-auto">
+          <button onClick={onNext}
+            className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
+            {current + 1 >= total ? 'Завершить квест 🎉' : 'Готово! Идём дальше →'}
           </button>
         </div>
       </div>
