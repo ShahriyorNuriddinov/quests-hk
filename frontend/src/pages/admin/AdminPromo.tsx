@@ -26,7 +26,7 @@ export default function AdminPromo() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    api.get('/admin/promo').then(r => setCodes(r.data)).finally(() => setLoading(false))
+    api.get('/admin/promo').then(r => setCodes(r.data)).catch(() => setCodes([])).finally(() => setLoading(false))
   }, [])
 
   async function create(e: React.FormEvent) {
@@ -271,21 +271,21 @@ function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: str
         <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
           <div>
             <p className="text-[11px] text-gray-400">Накоплено</p>
-            <p className="text-sm font-extrabold text-gray-900">{c.earningsAccumulated.toFixed(0)} HK$</p>
+            <p className="text-sm font-extrabold text-gray-900">{(c.earningsAccumulated || 0).toFixed(0)} HK$</p>
           </div>
           <div className="text-right">
             <p className="text-[11px] text-gray-400">Всего выплачено</p>
-            <p className="text-sm font-bold text-gray-500">{(c.earningsTotal - c.earningsAccumulated).toFixed(0)} HK$</p>
+            <p className="text-sm font-bold text-gray-500">{((c.earningsTotal || 0) - (c.earningsAccumulated || 0)).toFixed(0)} HK$</p>
           </div>
         </div>
 
         {/* Payout button */}
-        {c.earningsAccumulated > 0 && (
+        {(c.earningsAccumulated || 0) > 0 && (
           <button
             onClick={() => onPayout(c._id)}
             className="mt-2 w-full bg-emerald-500 text-white text-xs font-bold rounded-xl py-2 px-3"
           >
-            Выплатить {c.earningsAccumulated.toFixed(0)} HK$
+            Выплатить {(c.earningsAccumulated || 0).toFixed(0)} HK$
           </button>
         )}
       </div>

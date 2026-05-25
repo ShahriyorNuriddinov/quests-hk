@@ -155,23 +155,31 @@ router.delete('/reviews/:id', async (req, res) => {
 })
 
 router.get('/promo', async (_, res) => {
-  res.json(await findAllPromoCodes())
+  try {
+    res.json(await findAllPromoCodes())
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.post('/promo', async (req, res) => {
-  const promo = await createPromoCode(req.body)
-  res.status(201).json(promo)
+  try {
+    const promo = await createPromoCode(req.body)
+    res.status(201).json(promo)
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.patch('/promo/:id', async (req, res) => {
-  const promo = await updatePromoCode(req.params.id, req.body)
-  res.json(promo)
+  try {
+    const promo = await updatePromoCode(req.params.id, req.body)
+    res.json(promo)
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.post('/promo/:id/payout', async (req, res) => {
-  const promo = await payoutPromo(req.params.id)
-  if (!promo) return res.status(404).json({ error: 'Not found' })
-  res.json(promo)
+  try {
+    const promo = await payoutPromo(req.params.id)
+    if (!promo) return res.status(404).json({ error: 'Not found' })
+    res.json(promo)
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 export default router
