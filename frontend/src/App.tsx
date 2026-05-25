@@ -13,6 +13,7 @@ import AdminPromo from './pages/admin/AdminPromo'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSales from './pages/admin/AdminSales'
 import AdminCities from './pages/admin/AdminCities'
+import AdminEvents from './pages/admin/AdminEvents'
 import CitySelect from './pages/CitySelect'
 import Profile from './pages/Profile'
 import FAQ from './pages/FAQ'
@@ -83,6 +84,9 @@ export default function App() {
           } />
           <Route path="/admin/cities" element={
             <AdminRoute><AdminCities /></AdminRoute>
+          } />
+          <Route path="/admin/events" element={
+            <AdminRoute><AdminEvents /></AdminRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

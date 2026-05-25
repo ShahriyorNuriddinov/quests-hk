@@ -1,14 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BarChart2, Map, MessageSquare, Tag, Globe, Bell } from 'lucide-react'
+import { BarChart2, Map, MessageSquare, Tag, Globe, Bell, Megaphone } from 'lucide-react'
 import { useState } from 'react'
 import { useAdminNotif } from '../context/AdminNotifContext'
 
 const navItems = [
-  { to: '/admin',          Icon: BarChart2,     label: 'Стат.'  },
-  { to: '/admin/quests',   Icon: Map,           label: 'Квесты' },
+  { to: '/admin',          Icon: BarChart2,   label: 'Стат.'   },
+  { to: '/admin/quests',   Icon: Map,         label: 'Квесты'  },
   { to: '/admin/reviews',  Icon: MessageSquare, label: 'Отзывы' },
-  { to: '/admin/promo',    Icon: Tag,           label: 'Промо'  },
-  { to: '/admin/cities',   Icon: Globe,         label: 'Города' },
+  { to: '/admin/promo',    Icon: Tag,         label: 'Промо'   },
+  { to: '/admin/cities',   Icon: Globe,       label: 'Города'  },
+  { to: '/admin/events',   Icon: Megaphone,   label: 'Акции'   },
 ]
 
 const ICONS: Record<string, string> = { review: '⭐', purchase: '💰', promo: '🎟️' }

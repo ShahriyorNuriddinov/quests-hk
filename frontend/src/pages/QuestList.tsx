@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
 import LangSwitcher from '../components/LangSwitcher'
 
+interface AppEvent { id: string; title: string; text: string | null; imageUrl: string | null }
+
 interface Quest {
   _id: string
   title: string
@@ -42,6 +44,11 @@ export default function QuestList() {
   const [notifyEmail, setNotifyEmail] = useState('')
   const [notifyDone, setNotifyDone] = useState<string | null>(null)
   const [notifySending, setNotifySending] = useState(false)
+  const [events, setEvents] = useState<AppEvent[]>([])
+
+  useEffect(() => {
+    api.get('/events').then(r => setEvents(r.data)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     api.get('/quests/cities').then(r => setCities(r.data)).catch(() => {
@@ -165,6 +172,27 @@ export default function QuestList() {
           </select>
         </div>
       </div>
+
+      {/* Events banner */}
+      {events.length > 0 && (
+        <div className="px-4 pt-2 max-w-lg mx-auto">
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+            {events.map(ev => (
+              <div key={ev.id} className="flex-shrink-0 w-64 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                {ev.imageUrl && (
+                  <div className="h-28 overflow-hidden">
+                    <img src={ev.imageUrl} alt={ev.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="px-3 py-2.5">
+                  <p className="font-bold text-[13px] text-gray-900 leading-snug">{ev.title}</p>
+                  {ev.text && <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{ev.text}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="px-4 py-3 max-w-lg mx-auto">
         {loading ? (

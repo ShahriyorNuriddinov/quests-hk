@@ -244,4 +244,59 @@ router.post('/test-notif', (req, res) => {
   res.json({ ok: true })
 })
 
+// ─── Events CRUD ───────────────────────────────────────────────────────────
+
+function toEvent(r) {
+  return { id: r.id, title: r.title, text: r.text, imageUrl: r.image_url, active: r.active, sortOrder: r.sort_order, createdAt: r.created_at }
+}
+
+router.get('/events', async (_, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM events ORDER BY sort_order ASC, created_at DESC')
+    res.json(rows.map(toEvent))
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
+router.post('/events', upload.single('image'), async (req, res) => {
+  try {
+    const { title, text = '', sortOrder = 0 } = req.body
+    if (!title) return res.status(400).json({ error: 'Missing title' })
+    let imageUrl = null
+    if (req.file) imageUrl = await uploadFile(req.file.buffer, req.file.mimetype, 'events')
+    const { rows } = await pool.query(
+      'INSERT INTO events (title, text, image_url, sort_order) VALUES ($1, $2, $3, $4) RETURNING *',
+      [title, text || null, imageUrl, parseInt(sortOrder) || 0]
+    )
+    res.status(201).json(toEvent(rows[0]))
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
+router.put('/events/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { title, text, active, sortOrder } = req.body
+    let imageUrl = req.body.imageUrl ?? null
+    if (req.file) imageUrl = await uploadFile(req.file.buffer, req.file.mimetype, 'events')
+    const { rows } = await pool.query(
+      `UPDATE events SET
+        title      = COALESCE($1, title),
+        text       = COALESCE($2, text),
+        image_url  = CASE WHEN $3::text IS NOT NULL THEN $3 ELSE image_url END,
+        active     = CASE WHEN $4::text IS NOT NULL THEN ($4 = 'true') ELSE active END,
+        sort_order = COALESCE($5::int, sort_order),
+        updated_at = NOW()
+       WHERE id = $6 RETURNING *`,
+      [title ?? null, text ?? null, imageUrl, active ?? null, sortOrder ? parseInt(sortOrder) : null, req.params.id]
+    )
+    if (!rows.length) return res.status(404).json({ error: 'Not found' })
+    res.json(toEvent(rows[0]))
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
+router.delete('/events/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM events WHERE id = $1', [req.params.id])
+    res.json({ ok: true })
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
 export default router

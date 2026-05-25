@@ -142,6 +142,18 @@ export async function initDb() {
       PRIMARY KEY (user_id, review_id)
     );
 
+    -- Admin events / announcements
+    CREATE TABLE IF NOT EXISTS events (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title TEXT NOT NULL,
+      text TEXT,
+      image_url TEXT,
+      active BOOLEAN NOT NULL DEFAULT true,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     -- City launch notification signups
     CREATE TABLE IF NOT EXISTS city_notifications (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
