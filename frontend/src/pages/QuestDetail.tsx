@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { Clock, Route, Gauge, MapPin, HelpCircle, Wallet, Rocket, Flag, Users, Star } from 'lucide-react'
+import { Clock, Route, Gauge, MapPin, HelpCircle, Wallet, Rocket, Flag, Users, Star, BookOpen, Sparkles } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { PhotoGrid } from '../components/ImageLightbox'
@@ -12,7 +12,7 @@ interface Quest {
   _id: string; title: string; description: string; duration: string; distance: string
   difficulty: string; price: number; currency: string; rating: number; completedCount: number
   reviewCount: number; locationsCount: number; questionsCount: number; transportCost: string
-  startPoint: string; endPoint: string; coverImage?: string
+  startPoint: string; endPoint: string; coverImage?: string; galleryImages?: string[]
 }
 
 function StarRow({ n, size = 12 }: { n: number; size?: number }) {
@@ -100,6 +100,43 @@ export default function QuestDetail() {
               <Users size={13} className="text-gray-400" /> {quest.completedCount} прошли
             </span>
           )}
+        </div>
+
+        {/* Gallery */}
+        {quest.galleryImages && quest.galleryImages.length > 0 && (
+          <div className="mt-5">
+            <h2 className="text-base font-extrabold mb-3 text-gray-900">Что вас ждёт</h2>
+            <div className="grid grid-cols-3 gap-1.5 rounded-2xl overflow-hidden">
+              {quest.galleryImages.slice(0, 6).map((img, i) => (
+                <div key={i} className="aspect-square bg-gray-100 overflow-hidden">
+                  <img src={img} alt={`Фото ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* What awaits inside */}
+        <div className="mt-5 bg-gray-50 rounded-2xl p-4 border border-gray-100">
+          <p className="text-sm font-bold text-gray-700 mb-3">Вот что тебя ждёт внутри</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-start gap-2">
+              <MapPin size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-500">Интересный маршрут по городу продуманный до мелочей</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <Route size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-500">Детальная информация как добраться до каждой локации</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <BookOpen size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-500">Информация о каждой локации и исторические факты</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <Sparkles size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-gray-500">Несложные, но интересные вопросы</span>
+            </div>
+          </div>
         </div>
 
         {/* Details */}

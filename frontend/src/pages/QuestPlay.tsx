@@ -2,18 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import api from '../api/client'
-import { MapPin, Lightbulb } from 'lucide-react'
+import { MapPin, Lightbulb, Camera, BookOpen, History, Sparkles } from 'lucide-react'
 
 interface Step {
   _id: string
-  type: 'info' | 'question' | 'navigation'
+  type: 'info' | 'question' | 'navigation' | 'location_info' | 'answer' | 'photo'
   title: string
   content: string
   image?: string
+  images?: string[]
   options?: string[]
   answer?: string
   correctAnswer?: number
   hint?: string
+  explanation?: string
+  history?: string
+  facts?: string
   location?: { lat: number; lng: number; address: string }
 }
 
@@ -164,22 +168,40 @@ export default function QuestPlay() {
 
   // ── INTRO SCREEN ──────────────────────────────────────────────
   if (current === -1) {
+    const locCount = steps.filter(s => s.type === 'navigation').length
+    const qCount = steps.filter(s => s.type === 'question').length
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
         <div className="w-full max-w-sm">
-          <div className="rounded-3xl overflow-hidden mb-8 shadow-lg">
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-3">{questTitle}</p>
+          <div className="rounded-3xl overflow-hidden mb-6 shadow-lg">
             {coverImage
               ? <img src={coverImage} alt={questTitle} className="w-full h-56 object-cover" />
               : <div className="h-56 bg-gradient-to-br from-yellow-200 to-yellow-400" />
             }
           </div>
-          <h1 className="text-3xl font-extrabold mb-3">Готовы к приключению?</h1>
-          <p className="text-gray-400 text-sm leading-relaxed mb-8">
-            Мы отправляемся в путь. Внимательно читайте историю и ищите подсказки на самих зданиях!
+          <h1 className="text-3xl font-extrabold mb-3">Начнём?</h1>
+          <p className="text-gray-500 text-sm leading-relaxed mb-4">
+            Вас ждёт {locCount > 0 ? `${locCount} локаций` : ''}{locCount > 0 && qCount > 0 ? ', ' : ''}{qCount > 0 ? `${qCount} вопросов` : ''}.
+            Никуда не спешите, здесь нет таймера, но и вернуться назад будет нельзя.
           </p>
+          <div className="flex justify-center gap-4 mb-6 text-xs text-gray-400">
+            <div className="flex items-center gap-1.5">
+              <MapPin size={13} /> Маршрут
+            </div>
+            <div className="flex items-center gap-1.5">
+              <BookOpen size={13} /> Факты
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Lightbulb size={13} /> Вопросы
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Camera size={13} /> Фото
+            </div>
+          </div>
           <button onClick={startQuest}
             className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-            Я готов!
+            Я готов! Начать
           </button>
           <button onClick={() => navigate(-1)} className="mt-4 text-sm text-gray-300">
             ← Назад
@@ -291,10 +313,18 @@ export default function QuestPlay() {
             >
               <span className="text-2xl">📍</span>
               <div>
-                <p className="text-sm font-bold text-gray-800">Как найти?</p>
+                <p className="text-sm font-bold text-gray-800">Показать на карте</p>
                 <p className="text-xs text-[#FFD600] font-medium mt-0.5">Открыть Google Maps →</p>
               </div>
             </a>
+          )}
+          {step.images && step.images.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {step.images.map((img, idx) => (
+                <img key={idx} src={img} alt={`Фото ${idx + 1}`}
+                  className="w-28 h-20 rounded-xl object-cover flex-shrink-0" />
+              ))}
+            </div>
           )}
         </div>
         <div className="px-6 pb-8 max-w-lg mx-auto w-full">
@@ -302,6 +332,132 @@ export default function QuestPlay() {
             className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
             {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Я на месте →'}
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── LOCATION INFO STEP ───────────────────────────────────────
+  if (step.type === 'location_info') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <ProgressBar progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} />
+        <div className="flex-1 px-6 py-6 pb-32 flex flex-col max-w-lg mx-auto w-full">
+          {step.image && (
+            <div className="rounded-3xl overflow-hidden mb-6 shadow-sm">
+              <img src={step.image} alt={step.title} className="w-full h-52 object-cover" />
+            </div>
+          )}
+          <h2 className="text-2xl font-extrabold mb-4">{step.title}</h2>
+
+          {step.content && (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen size={16} className="text-blue-500" />
+                <span className="text-sm font-bold text-gray-700">Описание</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{step.content}</p>
+            </div>
+          )}
+
+          {step.history && (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <History size={16} className="text-amber-500" />
+                <span className="text-sm font-bold text-gray-700">История</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{step.history}</p>
+            </div>
+          )}
+
+          {step.facts && (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={16} className="text-purple-500" />
+                <span className="text-sm font-bold text-gray-700">Интересные факты</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{step.facts}</p>
+            </div>
+          )}
+        </div>
+        <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
+          <div className="max-w-lg mx-auto">
+            <button onClick={next}
+              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
+              {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Далее →'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── ANSWER STEP ─────────────────────────────────────────────
+  if (step.type === 'answer') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <ProgressBar progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} />
+        <div className="flex-1 px-6 py-6 pb-32 flex flex-col max-w-lg mx-auto w-full">
+          <p className="text-center text-[#FFD600] text-2xl font-extrabold mb-4">Верно!</p>
+          {step.image && (
+            <div className="rounded-3xl overflow-hidden mb-6 shadow-sm">
+              <img src={step.image} alt={step.title} className="w-full h-52 object-cover" />
+            </div>
+          )}
+          <h2 className="text-xl font-extrabold mb-3">{step.title}</h2>
+          {step.content && (
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line mb-4">{step.content}</p>
+          )}
+          {step.explanation && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-4">
+              <p className="text-sm font-bold text-green-700 mb-1">Объяснение</p>
+              <p className="text-sm text-green-800 leading-relaxed whitespace-pre-line">{step.explanation}</p>
+            </div>
+          )}
+        </div>
+        <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
+          <div className="max-w-lg mx-auto">
+            <button onClick={next}
+              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
+              {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Далее →'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── PHOTO STEP ──────────────────────────────────────────────
+  if (step.type === 'photo') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <ProgressBar progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} />
+        <div className="flex-1 px-6 py-6 pb-32 flex flex-col max-w-lg mx-auto w-full">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <Camera size={24} className="text-gray-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold">{step.title || 'Сделать фото'}</h2>
+            </div>
+          </div>
+          {step.content && (
+            <p className="text-sm text-gray-500 leading-relaxed mb-6 italic">{step.content}</p>
+          )}
+          {step.image && (
+            <div className="rounded-3xl overflow-hidden mb-6 shadow-sm">
+              <img src={step.image} alt="Пример фото" className="w-full h-64 object-cover" />
+            </div>
+          )}
+          <p className="text-xs text-gray-300 text-center">Прикреплять фото не нужно — просто сделайте на память</p>
+        </div>
+        <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
+          <div className="max-w-lg mx-auto">
+            <button onClick={next}
+              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
+              {current + 1 >= steps.length ? 'Завершить квест 🎉' : 'Готово! Идём дальше →'}
+            </button>
+          </div>
         </div>
       </div>
     )

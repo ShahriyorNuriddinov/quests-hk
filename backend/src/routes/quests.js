@@ -7,7 +7,8 @@ const router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    res.json(await findAllQuests({ status: 'published', withSteps: false }))
+    const city = req.query.city || undefined
+    res.json(await findAllQuests({ status: 'published', city, withSteps: false }))
   } catch { res.status(500).json({ error: 'Server error' }) }
 })
 

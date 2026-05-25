@@ -7,13 +7,17 @@ import MapPicker from '../../components/MapPicker'
 
 interface Step {
   _id?: string
-  type: 'info' | 'question' | 'navigation'
+  type: 'info' | 'question' | 'navigation' | 'location_info' | 'answer' | 'photo'
   title: string
   content: string
   image?: string
+  images?: string[]
   options?: string[]
   answer?: string
   hint?: string
+  explanation?: string
+  history?: string
+  facts?: string
   location?: { lat: number; lng: number; address: string }
   order: number
 }
@@ -36,11 +40,14 @@ const EMPTY: QuestForm = {
 function newStep(type: Step['type'], order: number): Step {
   if (type === 'question') return { type, title: '', content: '', options: ['', '', '', ''], answer: '', order }
   if (type === 'navigation') return { type, title: '', content: '', location: { lat: 0, lng: 0, address: '' }, order }
+  if (type === 'location_info') return { type, title: '', content: '', history: '', facts: '', order }
+  if (type === 'answer') return { type, title: '', content: '', explanation: '', order }
+  if (type === 'photo') return { type, title: 'Сделать фото', content: '', order }
   return { type: 'info', title: '', content: '', order }
 }
 
-const TYPE_LABELS = { info: 'Информация', question: 'Вопрос', navigation: 'Навигация' }
-const TYPE_COLORS = { info: 'bg-blue-100 text-blue-700', question: 'bg-green-100 text-green-700', navigation: 'bg-orange-100 text-orange-700' }
+const TYPE_LABELS: Record<string, string> = { info: 'Информация', question: 'Вопрос', navigation: 'Навигация', location_info: 'Описание локации', answer: 'Ответ', photo: 'Фото' }
+const TYPE_COLORS: Record<string, string> = { info: 'bg-blue-100 text-blue-700', question: 'bg-green-100 text-green-700', navigation: 'bg-orange-100 text-orange-700', location_info: 'bg-purple-100 text-purple-700', answer: 'bg-emerald-100 text-emerald-700', photo: 'bg-pink-100 text-pink-700' }
 
 export default function AdminQuestEdit() {
   const { id } = useParams<{ id: string }>()
@@ -408,8 +415,39 @@ export default function AdminQuestEdit() {
                         </div>
                       )}
 
+                      {/* Location info fields */}
+                      {step.type === 'location_info' && (
+                        <>
+                          <div className="px-4 py-3 border-b border-gray-50">
+                            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">История</label>
+                            <textarea value={step.history || ''} onChange={e => updateStep(i, { history: e.target.value })}
+                              placeholder="Историческая справка о локации..."
+                              rows={3}
+                              className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent resize-none" />
+                          </div>
+                          <div className="px-4 py-3 border-b border-gray-50">
+                            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Интересные факты</label>
+                            <textarea value={step.facts || ''} onChange={e => updateStep(i, { facts: e.target.value })}
+                              placeholder="Интересные факты о локации..."
+                              rows={3}
+                              className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent resize-none" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Answer explanation */}
+                      {step.type === 'answer' && (
+                        <div className="px-4 py-3 border-b border-gray-50">
+                          <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Объяснение ответа</label>
+                          <textarea value={step.explanation || ''} onChange={e => updateStep(i, { explanation: e.target.value })}
+                            placeholder="Объяснение правильного ответа..."
+                            rows={3}
+                            className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent resize-none" />
+                        </div>
+                      )}
+
                       {/* Close padding for non-navigation last section */}
-                      {step.type !== 'navigation' && step.type !== 'question' && <div className="h-1" />}
+                      {!['navigation', 'question', 'location_info', 'answer'].includes(step.type) && <div className="h-1" />}
                     </div>
                   )}
                 </div>
@@ -417,14 +455,10 @@ export default function AdminQuestEdit() {
             </div>
 
             {/* Add step buttons */}
-            <div className="flex gap-2 mt-3">
-              {(['navigation', 'info', 'question'] as Step['type'][]).map(type => (
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {(['navigation', 'info', 'question', 'location_info', 'answer', 'photo'] as Step['type'][]).map(type => (
                 <button key={type} onClick={() => addStep(type)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 rounded-2xl py-3 text-xs font-bold transition-colors ${
-                    type === 'navigation' ? 'bg-orange-50 text-orange-500' :
-                    type === 'info' ? 'bg-blue-50 text-blue-500' :
-                    'bg-green-50 text-green-600'
-                  }`}>
+                  className={`flex items-center justify-center gap-1.5 rounded-2xl py-3 text-xs font-bold transition-colors ${TYPE_COLORS[type] || 'bg-gray-100 text-gray-600'}`}>
                   <Plus size={13} strokeWidth={2.5} /> {TYPE_LABELS[type]}
                 </button>
               ))}

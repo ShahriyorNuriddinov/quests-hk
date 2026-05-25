@@ -18,6 +18,8 @@ function toQuest(row, withSteps = true) {
     startPoint: row.start_point,
     endPoint: row.end_point,
     coverImage: row.cover_image,
+    galleryImages: row.gallery_images || [],
+    city: row.city || 'hk',
     status: row.status,
     rating: parseFloat(row.rating),
     completedCount: row.completed_count,
@@ -28,10 +30,12 @@ function toQuest(row, withSteps = true) {
   return q
 }
 
-export async function findAllQuests({ status, withSteps = false } = {}) {
+export async function findAllQuests({ status, city, withSteps = false } = {}) {
   const params = []
-  let where = ''
-  if (status) { where = 'WHERE q.status = $1'; params.push(status) }
+  const conditions = []
+  if (status) { conditions.push(`q.status = $${params.length + 1}`); params.push(status) }
+  if (city) { conditions.push(`q.city = $${params.length + 1}`); params.push(city) }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
   const { rows } = await pool.query(`
     SELECT q.*,
       (SELECT COUNT(*)::int FROM user_quests WHERE quest_id = q.id) AS real_completed,
@@ -82,8 +86,8 @@ export async function createQuest(data) {
     INSERT INTO quests
       (title, description, duration, distance, difficulty, price, currency,
        locations_count, questions_count, transport_cost, start_point, end_point,
-       cover_image, status, steps)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       cover_image, status, steps, gallery_images, city)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
     RETURNING *
   `, [
     data.title, data.description, data.duration, data.distance,
@@ -91,6 +95,7 @@ export async function createQuest(data) {
     data.locationsCount || 0, data.questionsCount || 0, data.transportCost,
     data.startPoint, data.endPoint, data.coverImage,
     data.status || 'draft', JSON.stringify(data.steps || []),
+    JSON.stringify(data.galleryImages || []), data.city || 'hk',
   ])
   return toQuest(rows[0])
 }
@@ -103,14 +108,16 @@ export async function updateQuest(id, data) {
     questionsCount: 'questions_count', transportCost: 'transport_cost',
     startPoint: 'start_point', endPoint: 'end_point', coverImage: 'cover_image',
     status: 'status', rating: 'rating', completedCount: 'completed_count', steps: 'steps',
+    galleryImages: 'gallery_images', city: 'city',
   }
+  const jsonKeys = ['steps', 'galleryImages']
   const sets = []
   const vals = []
   let i = 1
   for (const [key, col] of Object.entries(colMap)) {
     if (data[key] !== undefined) {
       sets.push(`${col} = $${i++}`)
-      vals.push(key === 'steps' ? JSON.stringify(data[key]) : data[key])
+      vals.push(jsonKeys.includes(key) ? JSON.stringify(data[key]) : data[key])
     }
   }
   if (!sets.length) return findQuestById(id)
