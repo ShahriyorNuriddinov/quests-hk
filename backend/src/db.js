@@ -80,6 +80,17 @@ export async function initDb() {
     ALTER TABLE user_quests ADD COLUMN IF NOT EXISTS progress JSONB DEFAULT NULL;
     ALTER TABLE user_quests ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE;
 
+    -- Promo code partner fields
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS partner_name TEXT DEFAULT '';
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS partner_description TEXT DEFAULT '';
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS earnings_accumulated NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS earnings_total NUMERIC NOT NULL DEFAULT 0;
+
+    -- Quest gallery images
+    ALTER TABLE quests ADD COLUMN IF NOT EXISTS gallery_images JSONB DEFAULT '[]';
+    -- Quest city
+    ALTER TABLE quests ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'hk';
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);

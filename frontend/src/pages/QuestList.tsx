@@ -19,15 +19,23 @@ interface Quest {
   coverImage?: string
 }
 
+const CITIES = [
+  { code: 'hk', label: 'Гонконг', flag: '🇭🇰', active: true },
+  { code: 'macau', label: 'Макао', flag: '🇲🇴', active: true },
+  { code: 'guangzhou', label: 'Гуанчжоу', flag: '🇨🇳', active: false },
+]
+
 export default function QuestList() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
+  const [city, setCity] = useState('hk')
 
   useEffect(() => {
-    api.get('/quests').then(r => setQuests(r.data)).finally(() => setLoading(false))
-  }, [])
+    setLoading(true)
+    api.get(`/quests?city=${city}`).then(r => setQuests(r.data)).finally(() => setLoading(false))
+  }, [city])
 
   function handleBuy(questId: string) {
     if (!user) { navigate(`/auth?from=/quest/${questId}/pay`); return }
@@ -37,13 +45,37 @@ export default function QuestList() {
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
       <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100">
-        <h1 className="text-xl font-extrabold tracking-tight">🇭🇰 QUESTS HK</h1>
+        <h1 className="text-xl font-extrabold tracking-tight">Квест-Экскурсии</h1>
         <div className="flex items-center gap-2">
           <Link to="/reviews" className="flex items-center gap-1 text-xs text-gray-400">
             <Star size={12} fill="#FFD600" strokeWidth={0} />
             Отзывы
           </Link>
           <LangSwitcher />
+        </div>
+      </div>
+
+      {/* City selector */}
+      <div className="px-4 pt-3 pb-1 max-w-lg mx-auto">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {CITIES.map(c => (
+            <button
+              key={c.code}
+              onClick={() => c.active && setCity(c.code)}
+              disabled={!c.active}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                city === c.code
+                  ? 'bg-[#FFD600] text-black'
+                  : c.active
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <span>{c.flag}</span>
+              <span>{c.label}</span>
+              {!c.active && <span className="text-[10px] ml-1">(скоро)</span>}
+            </button>
+          ))}
         </div>
       </div>
 

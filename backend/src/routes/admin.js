@@ -5,7 +5,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js'
 import { findAllQuests, findQuestById, createQuest, updateQuest, deleteQuest, countQuests } from '../models/Quest.js'
 import { countUsers, countTotalPurchases, findAllUsers, findAllSales, getTotalRevenue, getSalesChart } from '../models/User.js'
 import { findAllReviews, updateReview, deleteReview, countReviews } from '../models/Review.js'
-import { findAllPromoCodes, createPromoCode, updatePromoCode, countActivePromoCodes } from '../models/PromoCode.js'
+import { findAllPromoCodes, createPromoCode, updatePromoCode, countActivePromoCodes, payoutPromo } from '../models/PromoCode.js'
 import { pool } from '../db.js'
 import { uploadFile } from '../storage.js'
 
@@ -165,6 +165,12 @@ router.post('/promo', async (req, res) => {
 
 router.patch('/promo/:id', async (req, res) => {
   const promo = await updatePromoCode(req.params.id, req.body)
+  res.json(promo)
+})
+
+router.post('/promo/:id/payout', async (req, res) => {
+  const promo = await payoutPromo(req.params.id)
+  if (!promo) return res.status(404).json({ error: 'Not found' })
   res.json(promo)
 })
 

@@ -9,7 +9,27 @@
   body {
     @apply bg-white text-gray-900 font-sans;
     overscroll-behavior: none;
+    top: 0 !important;
   }
+}
+
+/* Hide Google Translate toolbar / banner */
+.goog-te-banner-frame,
+.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 @layer components {
@@ -20,3 +40,6 @@
     @apply bg-white rounded-2xl border border-gray-100 shadow-sm p-4;
   }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

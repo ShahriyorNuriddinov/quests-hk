@@ -11,6 +11,10 @@ function toPromo(row) {
     usedCount: row.used_count,
     maxUses: row.max_uses,
     active: row.active,
+    partnerName: row.partner_name || '',
+    partnerDescription: row.partner_description || '',
+    earningsAccumulated: parseFloat(row.earnings_accumulated || 0),
+    earningsTotal: parseFloat(row.earnings_total || 0),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -31,14 +35,16 @@ export async function findPromoByCode(code, active) {
 
 export async function createPromoCode(data) {
   const { rows } = await pool.query(`
-    INSERT INTO promo_codes (code, discount, type, max_uses, active)
-    VALUES ($1, $2, $3, $4, $5) RETURNING *
+    INSERT INTO promo_codes (code, discount, type, max_uses, active, partner_name, partner_description)
+    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
   `, [
     data.code?.toUpperCase(),
     data.discount,
     data.type || 'percent',
     data.maxUses ?? 100,
     data.active !== false,
+    data.partnerName || '',
+    data.partnerDescription || '',
   ])
   return toPromo(rows[0])
 }
@@ -50,11 +56,29 @@ export async function updatePromoCode(id, data) {
   if (data.active !== undefined) { sets.push(`active = $${i++}`); vals.push(data.active) }
   if (data.discount !== undefined) { sets.push(`discount = $${i++}`); vals.push(data.discount) }
   if (data.maxUses !== undefined) { sets.push(`max_uses = $${i++}`); vals.push(data.maxUses) }
+  if (data.partnerName !== undefined) { sets.push(`partner_name = $${i++}`); vals.push(data.partnerName) }
+  if (data.partnerDescription !== undefined) { sets.push(`partner_description = $${i++}`); vals.push(data.partnerDescription) }
+  if (data.earningsAccumulated !== undefined) { sets.push(`earnings_accumulated = $${i++}`); vals.push(data.earningsAccumulated) }
   if (!sets.length) return null
   sets.push(`updated_at = NOW()`)
   vals.push(id)
   const { rows } = await pool.query(
     `UPDATE promo_codes SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`, vals
+  )
+  return toPromo(rows[0])
+}
+
+export async function addPromoEarnings(code, amount) {
+  await pool.query(
+    `UPDATE promo_codes SET earnings_accumulated = earnings_accumulated + $2, earnings_total = earnings_total + $2, updated_at = NOW() WHERE code = $1`,
+    [code, amount]
+  )
+}
+
+export async function payoutPromo(id) {
+  const { rows } = await pool.query(
+    `UPDATE promo_codes SET earnings_accumulated = 0, updated_at = NOW() WHERE id = $1 RETURNING *`,
+    [id]
   )
   return toPromo(rows[0])
 }

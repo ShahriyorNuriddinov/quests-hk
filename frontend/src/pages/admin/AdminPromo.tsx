@@ -12,13 +12,17 @@ interface PromoCode {
   usedCount: number
   maxUses: number
   active: boolean
+  partnerName: string
+  partnerDescription: string
+  earningsAccumulated: number
+  earningsTotal: number
 }
 
 export default function AdminPromo() {
   const [codes, setCodes] = useState<PromoCode[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({ code: '', discount: 10, type: 'percent' as 'percent' | 'fixed', maxUses: 100 })
+  const [form, setForm] = useState({ code: '', discount: 10, type: 'percent' as 'percent' | 'fixed', maxUses: 100, partnerName: '', partnerDescription: '' })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,12 +34,18 @@ export default function AdminPromo() {
     const r = await api.post('/admin/promo', form)
     setCodes(c => [r.data, ...c])
     setCreating(false)
-    setForm({ code: '', discount: 10, type: 'percent', maxUses: 100 })
+    setForm({ code: '', discount: 10, type: 'percent', maxUses: 100, partnerName: '', partnerDescription: '' })
   }
 
   async function toggle(id: string, active: boolean) {
     await api.patch(`/admin/promo/${id}`, { active })
     setCodes(c => c.map(x => x._id === id ? { ...x, active } : x))
+  }
+
+  async function payout(id: string) {
+    if (!confirm('Подтверждаете выплату? Сумма накопления обнулится.')) return
+    const r = await api.post(`/admin/promo/${id}/payout`)
+    setCodes(c => c.map(x => x._id === id ? r.data : x))
   }
 
   const active = codes.filter(c => c.active)
@@ -113,6 +123,24 @@ export default function AdminPromo() {
                 className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
               />
             </div>
+            <div className="px-4 py-3 border-b border-gray-50">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Партнёр (имя)</label>
+              <input
+                placeholder="Имя партнёра"
+                value={form.partnerName}
+                onChange={e => setForm(f => ({ ...f, partnerName: e.target.value }))}
+                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
+            <div className="px-4 py-3 border-b border-gray-50">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Описание (чей промокод)</label>
+              <input
+                placeholder="Описание партнёрства"
+                value={form.partnerDescription}
+                onChange={e => setForm(f => ({ ...f, partnerDescription: e.target.value }))}
+                className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
             <div className="px-4 py-4">
               <button type="submit"
                 className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-3 text-sm flex items-center justify-center gap-2">
@@ -162,7 +190,7 @@ export default function AdminPromo() {
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
                   Активные · {active.length}
                 </p>
-                {active.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} />)}
+                {active.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} onPayout={payout} />)}
               </div>
             )}
             {inactive.length > 0 && (
@@ -170,7 +198,7 @@ export default function AdminPromo() {
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
                   Отключены · {inactive.length}
                 </p>
-                {inactive.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} />)}
+                {inactive.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} onPayout={payout} />)}
               </div>
             )}
           </>
@@ -182,7 +210,7 @@ export default function AdminPromo() {
   )
 }
 
-function PromoCard({ c, onToggle }: { c: PromoCode; onToggle: (id: string, active: boolean) => void }) {
+function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: string, active: boolean) => void; onPayout: (id: string) => void }) {
   const usedPct = c.maxUses > 0 ? Math.round((c.usedCount / c.maxUses) * 100) : 0
 
   return (
@@ -215,8 +243,18 @@ function PromoCard({ c, onToggle }: { c: PromoCode; onToggle: (id: string, activ
           </button>
         </div>
 
+        {/* Partner info */}
+        {c.partnerName && (
+          <div className="mb-3 bg-blue-50 rounded-xl px-3 py-2">
+            <p className="text-[11px] font-bold text-blue-600">{c.partnerName}</p>
+            {c.partnerDescription && (
+              <p className="text-[11px] text-blue-400 mt-0.5">{c.partnerDescription}</p>
+            )}
+          </div>
+        )}
+
         {/* Usage bar */}
-        <div>
+        <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] text-gray-400">Использований</span>
             <span className="text-[11px] font-bold text-gray-700">{c.usedCount} / {c.maxUses}</span>
@@ -228,6 +266,28 @@ function PromoCard({ c, onToggle }: { c: PromoCode; onToggle: (id: string, activ
             />
           </div>
         </div>
+
+        {/* Earnings */}
+        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+          <div>
+            <p className="text-[11px] text-gray-400">Накоплено</p>
+            <p className="text-sm font-extrabold text-gray-900">{c.earningsAccumulated.toFixed(0)} HK$</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] text-gray-400">Всего выплачено</p>
+            <p className="text-sm font-bold text-gray-500">{(c.earningsTotal - c.earningsAccumulated).toFixed(0)} HK$</p>
+          </div>
+        </div>
+
+        {/* Payout button */}
+        {c.earningsAccumulated > 0 && (
+          <button
+            onClick={() => onPayout(c._id)}
+            className="mt-2 w-full bg-emerald-500 text-white text-xs font-bold rounded-xl py-2 px-3"
+          >
+            Выплатить {c.earningsAccumulated.toFixed(0)} HK$
+          </button>
+        )}
       </div>
     </div>
   )
