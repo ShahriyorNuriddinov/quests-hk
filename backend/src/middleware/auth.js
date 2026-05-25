@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import { findUserById } from '../models/User.js'
 
 export async function requireAuth(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1]
+  const token = req.headers.authorization?.split(' ')[1] || req.query.token
   if (!token) return res.status(401).json({ error: 'Unauthorized' })
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET)

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import nodemailer from 'nodemailer'
 import { requireAuth, requireAdmin } from '../middleware/auth.js'
+import { subscribe } from '../events.js'
 import { findAllQuests, findQuestById, createQuest, updateQuest, deleteQuest, countQuests } from '../models/Quest.js'
 import { countUsers, countTotalPurchases, findAllUsers, findAllSales, getTotalRevenue, getSalesChart } from '../models/User.js'
 import { findAllReviews, updateReview, deleteReview, countReviews } from '../models/Review.js'
@@ -209,6 +210,25 @@ router.delete('/cities/:id', async (req, res) => {
     await deleteCity(req.params.id)
     res.json({ ok: true })
   } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.get('/events', (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  })
+  res.flushHeaders()
+  res.write('data: {"type":"connected"}\n\n')
+
+  const unsub = subscribe(res)
+  const ping = setInterval(() => {
+    try { res.write(': ping\n\n') }
+    catch { clearInterval(ping); unsub() }
+  }, 25000)
+
+  req.on('close', () => { clearInterval(ping); unsub() })
 })
 
 export default router

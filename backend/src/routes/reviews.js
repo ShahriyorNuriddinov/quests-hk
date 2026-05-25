@@ -3,6 +3,7 @@ import multer from 'multer'
 import { requireAuth } from '../middleware/auth.js'
 import { createReview, findApprovedReviews } from '../models/Review.js'
 import { uploadFile } from '../storage.js'
+import { broadcast } from '../events.js'
 
 const router = Router()
 
@@ -32,6 +33,7 @@ router.post('/', requireAuth, upload.array('photos', 4), async (req, res) => {
       (req.files || []).map(f => uploadFile(f.buffer, f.mimetype, 'reviews'))
     )
     const review = await createReview({ userId: req.user.id, questId, rating: parseInt(rating), text, photos })
+    broadcast('review', { message: `Новый отзыв (${rating}★)`, questId })
     res.status(201).json(review)
   } catch (err) {
     console.error('review error:', err?.message || err)

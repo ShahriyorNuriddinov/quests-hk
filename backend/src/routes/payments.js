@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { findQuestById } from '../models/Quest.js'
 import { findPromoByCode, incrementPromoUsed, incrementPromoUsedByCode, addPromoEarnings, calcCommission } from '../models/PromoCode.js'
 import { addPurchasedQuest } from '../models/User.js'
+import { broadcast } from '../events.js'
 
 const router = Router()
 
@@ -67,10 +68,12 @@ router.post('/checkout', requireAuth, async (req, res) => {
   // Free quest or no payment keys — grant access directly
   if (amount <= 0 || !process.env.AIRWALLEX_CLIENT_ID) {
     await addPurchasedQuest(req.user.id, questId)
+    broadcast('purchase', { message: `Куплен квест: ${quest.title}`, questId })
     if (appliedPromo) {
       await incrementPromoUsed(appliedPromo.id)
       const commission = calcCommission(appliedPromo, amount)
       if (commission > 0) await addPromoEarnings(appliedPromo.code, commission)
+      broadcast('promo', { message: `Промокод ${appliedPromo.code} использован`, code: appliedPromo.code })
     }
     return res.json({ url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/quest/${questId}?status=success` })
   }
@@ -116,12 +119,14 @@ router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), asy
       const { userId, questId, promoCode } = event.data?.object?.metadata || {}
       if (userId && questId) {
         await addPurchasedQuest(userId, questId)
+        broadcast('purchase', { message: 'Новая оплата квеста', questId })
         if (promoCode) {
           await incrementPromoUsedByCode(promoCode)
           const promo = await findPromoByCode(promoCode)
           const paidAmount = event.data?.object?.amount || 0
           const commission = calcCommission(promo, paidAmount)
           if (commission > 0) await addPromoEarnings(promoCode, commission)
+          broadcast('promo', { message: `Промокод ${promoCode} использован`, code: promoCode })
         }
       }
     }
