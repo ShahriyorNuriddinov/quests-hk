@@ -68,7 +68,7 @@ export default function CitySelect() {
                   : 'bg-[#FFD600]/30 text-gray-400 cursor-not-allowed'
               }`}
             >
-              <span className="font-extrabold text-sm uppercase tracking-wider min-w-[2rem]">{city.code.toUpperCase().slice(0, 2)}</span>
+              <span className="font-extrabold text-sm uppercase tracking-wider min-w-[2rem]">{city.flag || city.code.toUpperCase().slice(0, 2)}</span>
               <span>{city.name}{!city.active ? ' (coming soon)' : ''}</span>
             </button>
           ))}
