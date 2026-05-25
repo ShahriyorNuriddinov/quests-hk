@@ -29,7 +29,7 @@ export default function QuestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [quest, setQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(true)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -42,7 +42,9 @@ export default function QuestDetail() {
   }, [id])
 
   useEffect(() => {
-    if (paymentSuccess) navigate(`/quest/${id}/play`, { replace: true })
+    if (paymentSuccess) {
+      refreshUser().catch(() => {}).finally(() => navigate(`/quest/${id}/play`, { replace: true }))
+    }
   }, [paymentSuccess, id])
 
   if (loading) return (

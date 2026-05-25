@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { createClient } from '@supabase/supabase-js'
-import { upsertUserByEmail } from '../models/User.js'
+import { upsertUserByEmail, findUserById } from '../models/User.js'
 import { requireAuth } from '../middleware/auth.js'
 
 const supabase = createClient(
@@ -17,7 +17,8 @@ router.post('/supabase-sync', async (req, res) => {
     if (!access_token) return res.status(400).json({ error: 'Missing token' })
     const { data: { user: sbUser }, error } = await supabase.auth.getUser(access_token)
     if (error || !sbUser) return res.status(401).json({ error: 'Invalid token' })
-    const user = await upsertUserByEmail(sbUser.email)
+    const created = await upsertUserByEmail(sbUser.email)
+    const user = await findUserById(created.id)
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '90d' })
     res.json({ token, user: { id: user.id, email: user.email, role: user.role, purchasedQuests: user.purchasedQuests } })
   } catch (err) {
