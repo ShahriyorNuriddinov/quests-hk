@@ -85,7 +85,7 @@ export default function QuestList() {
                       : 'bg-gray-50 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                <span className="text-xs font-bold uppercase">{c.code.slice(0, 2)}</span>
+                <span className="text-xs font-bold uppercase">{c.flag || c.code.slice(0, 2)}</span>
                 <span>{c.name}</span>
                 {!c.active && <span className="text-[10px] ml-1">(скоро)</span>}
               </button>
