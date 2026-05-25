@@ -16,6 +16,7 @@ export default function QuestReview() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function addPhotos(files: FileList | null) {
@@ -36,6 +37,7 @@ export default function QuestReview() {
 
   async function submit() {
     if (!text.trim()) return
+    setError('')
     setSending(true)
     try {
       const form = new FormData()
@@ -46,7 +48,11 @@ export default function QuestReview() {
       await api.post('/reviews', form, { headers: { 'Content-Type': 'multipart/form-data' } })
       setDone(true)
       setTimeout(() => navigate('/quests'), 2500)
-    } catch {
+    } catch (e: any) {
+      const msg = e?.response?.data?.error
+      if (msg === 'Purchase required') setError('Квест не куплен')
+      else if (e?.response?.status === 409 || msg?.includes?.('unique')) setError('Вы уже оставили отзыв на этот квест')
+      else setError('Ошибка отправки. Попробуйте ещё раз.')
       setSending(false)
     }
   }
@@ -168,6 +174,11 @@ export default function QuestReview() {
 
       {/* Bottom CTA */}
       <div className="px-5 pb-10 pt-2 max-w-lg mx-auto w-full flex flex-col gap-3">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm text-red-600 font-medium text-center">
+            {error}
+          </div>
+        )}
         <button
           onClick={submit}
           disabled={sending || !text.trim()}
