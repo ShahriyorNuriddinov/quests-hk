@@ -13,6 +13,8 @@ function toPromo(row) {
     active: row.active,
     partnerName: row.partner_name || '',
     partnerDescription: row.partner_description || '',
+    commissionRate: parseFloat(row.commission_rate || 0),
+    commissionType: row.commission_type || 'percent',
     earningsAccumulated: parseFloat(row.earnings_accumulated || 0),
     earningsTotal: parseFloat(row.earnings_total || 0),
     createdAt: row.created_at,
@@ -34,44 +36,34 @@ export async function findPromoByCode(code, active) {
 }
 
 export async function createPromoCode(data) {
-  try {
-    const { rows } = await pool.query(`
-      INSERT INTO promo_codes (code, discount, type, max_uses, active, partner_name, partner_description)
-      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
-    `, [
-      data.code?.toUpperCase(),
-      data.discount,
-      data.type || 'percent',
-      data.maxUses ?? 100,
-      data.active !== false,
-      data.partnerName || '',
-      data.partnerDescription || '',
-    ])
-    return toPromo(rows[0])
-  } catch {
-    const { rows } = await pool.query(`
-      INSERT INTO promo_codes (code, discount, type, max_uses, active)
-      VALUES ($1, $2, $3, $4, $5) RETURNING *
-    `, [
-      data.code?.toUpperCase(),
-      data.discount,
-      data.type || 'percent',
-      data.maxUses ?? 100,
-      data.active !== false,
-    ])
-    return toPromo(rows[0])
-  }
+  const { rows } = await pool.query(`
+    INSERT INTO promo_codes (code, discount, type, max_uses, active, partner_name, partner_description, commission_rate, commission_type)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+  `, [
+    data.code?.toUpperCase(),
+    data.discount,
+    data.type || 'percent',
+    data.maxUses ?? 100,
+    data.active !== false,
+    data.partnerName || '',
+    data.partnerDescription || '',
+    data.commissionRate ?? 0,
+    data.commissionType || 'percent',
+  ])
+  return toPromo(rows[0])
 }
 
 export async function updatePromoCode(id, data) {
   const sets = []
   const vals = []
   let i = 1
-  if (data.active !== undefined) { sets.push(`active = $${i++}`); vals.push(data.active) }
-  if (data.discount !== undefined) { sets.push(`discount = $${i++}`); vals.push(data.discount) }
-  if (data.maxUses !== undefined) { sets.push(`max_uses = $${i++}`); vals.push(data.maxUses) }
-  if (data.partnerName !== undefined) { sets.push(`partner_name = $${i++}`); vals.push(data.partnerName) }
-  if (data.partnerDescription !== undefined) { sets.push(`partner_description = $${i++}`); vals.push(data.partnerDescription) }
+  if (data.active !== undefined)              { sets.push(`active = $${i++}`);              vals.push(data.active) }
+  if (data.discount !== undefined)            { sets.push(`discount = $${i++}`);            vals.push(data.discount) }
+  if (data.maxUses !== undefined)             { sets.push(`max_uses = $${i++}`);            vals.push(data.maxUses) }
+  if (data.partnerName !== undefined)         { sets.push(`partner_name = $${i++}`);        vals.push(data.partnerName) }
+  if (data.partnerDescription !== undefined)  { sets.push(`partner_description = $${i++}`); vals.push(data.partnerDescription) }
+  if (data.commissionRate !== undefined)      { sets.push(`commission_rate = $${i++}`);     vals.push(data.commissionRate) }
+  if (data.commissionType !== undefined)      { sets.push(`commission_type = $${i++}`);     vals.push(data.commissionType) }
   if (data.earningsAccumulated !== undefined) { sets.push(`earnings_accumulated = $${i++}`); vals.push(data.earningsAccumulated) }
   if (!sets.length) return null
   sets.push(`updated_at = NOW()`)
@@ -82,7 +74,14 @@ export async function updatePromoCode(id, data) {
   return toPromo(rows[0])
 }
 
+export function calcCommission(promo, finalAmount) {
+  if (!promo || promo.commissionRate <= 0) return 0
+  if (promo.commissionType === 'fixed') return promo.commissionRate
+  return Math.round(finalAmount * promo.commissionRate) / 100
+}
+
 export async function addPromoEarnings(code, amount) {
+  if (amount <= 0) return
   await pool.query(
     `UPDATE promo_codes SET earnings_accumulated = earnings_accumulated + $2, earnings_total = earnings_total + $2, updated_at = NOW() WHERE code = $1`,
     [code, amount]

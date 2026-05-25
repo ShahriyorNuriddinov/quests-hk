@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Tag, Plus, X, Ticket } from 'lucide-react'
+import { ArrowLeft, Tag, Plus, X, Ticket, Percent, DollarSign } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../api/client'
 import AdminNav from '../../components/AdminNav'
@@ -14,15 +14,23 @@ interface PromoCode {
   active: boolean
   partnerName: string
   partnerDescription: string
+  commissionRate: number
+  commissionType: 'percent' | 'fixed'
   earningsAccumulated: number
   earningsTotal: number
+}
+
+const emptyForm = {
+  code: '', discount: 10, type: 'percent' as 'percent' | 'fixed',
+  maxUses: 100, partnerName: '', partnerDescription: '',
+  commissionRate: 0, commissionType: 'percent' as 'percent' | 'fixed',
 }
 
 export default function AdminPromo() {
   const [codes, setCodes] = useState<PromoCode[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({ code: '', discount: 10, type: 'percent' as 'percent' | 'fixed', maxUses: 100, partnerName: '', partnerDescription: '' })
+  const [form, setForm] = useState(emptyForm)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -34,7 +42,7 @@ export default function AdminPromo() {
     const r = await api.post('/admin/promo', form)
     setCodes(c => [r.data, ...c])
     setCreating(false)
-    setForm({ code: '', discount: 10, type: 'percent', maxUses: 100, partnerName: '', partnerDescription: '' })
+    setForm(emptyForm)
   }
 
   async function toggle(id: string, active: boolean) {
@@ -54,7 +62,6 @@ export default function AdminPromo() {
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
 
-      {/* Header */}
       <div className="bg-white px-4 pt-5 pb-4 sticky top-0 z-10 border-b border-gray-100">
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           <button onClick={() => navigate('/admin')}
@@ -80,7 +87,7 @@ export default function AdminPromo() {
         {/* Create form */}
         {creating && (
           <form onSubmit={create} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="px-4 pt-4 pb-2 border-b border-gray-50">
+            <div className="px-4 pt-4 pb-3 border-b border-gray-50">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Новый промо код</p>
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Код</label>
               <input
@@ -91,55 +98,77 @@ export default function AdminPromo() {
                 className="mt-1 w-full text-sm font-mono font-bold text-gray-900 focus:outline-none bg-transparent tracking-widest"
               />
             </div>
-            <div className="grid grid-cols-2 divide-x divide-gray-50">
-              <div className="px-4 py-3 border-b border-gray-50">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Скидка</label>
-                <input
-                  type="number"
-                  value={form.discount}
-                  onChange={e => setForm(f => ({ ...f, discount: Number(e.target.value) }))}
-                  required
-                  className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
-                />
-              </div>
-              <div className="px-4 py-3 border-b border-gray-50">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Тип</label>
-                <select
-                  value={form.type}
-                  onChange={e => setForm(f => ({ ...f, type: e.target.value as 'percent' | 'fixed' }))}
-                  className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
-                >
-                  <option value="percent">Процент (%)</option>
-                  <option value="fixed">Фиксированный</option>
-                </select>
+
+            {/* Discount */}
+            <div className="px-4 py-3 border-b border-gray-50">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Скидка покупателю</p>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400">Размер</label>
+                  <input type="number" value={form.discount}
+                    onChange={e => setForm(f => ({ ...f, discount: Number(e.target.value) }))}
+                    required className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400">Тип</label>
+                  <select value={form.type}
+                    onChange={e => setForm(f => ({ ...f, type: e.target.value as 'percent' | 'fixed' }))}
+                    className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent">
+                    <option value="percent">% процент</option>
+                    <option value="fixed">фикс. сумма</option>
+                  </select>
+                </div>
               </div>
             </div>
+
+            {/* Commission */}
+            <div className="px-4 py-3 border-b border-gray-50 bg-blue-50/40">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-2">Комиссия партнёру</p>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400">Размер</label>
+                  <input type="number" value={form.commissionRate} min={0}
+                    onChange={e => setForm(f => ({ ...f, commissionRate: Number(e.target.value) }))}
+                    className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[11px] text-gray-400">Тип</label>
+                  <select value={form.commissionType}
+                    onChange={e => setForm(f => ({ ...f, commissionType: e.target.value as 'percent' | 'fixed' }))}
+                    className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent">
+                    <option value="percent">% от продажи</option>
+                    <option value="fixed">фикс. HK$</option>
+                  </select>
+                </div>
+              </div>
+              <p className="text-[10px] text-blue-400 mt-1.5">
+                {form.commissionRate > 0
+                  ? form.commissionType === 'percent'
+                    ? `Пример: при продаже 128 HK$ партнёр получит ${Math.round(128 * form.commissionRate / 100)} HK$`
+                    : `Партнёр получает ${form.commissionRate} HK$ с каждой продажи`
+                  : 'Комиссия 0 — партнёру ничего не начисляется'}
+              </p>
+            </div>
+
             <div className="px-4 py-3 border-b border-gray-50">
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Макс. использований</label>
-              <input
-                type="number"
-                value={form.maxUses}
+              <input type="number" value={form.maxUses}
                 onChange={e => setForm(f => ({ ...f, maxUses: Number(e.target.value) }))}
-                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
-              />
+                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent" />
             </div>
             <div className="px-4 py-3 border-b border-gray-50">
-              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Партнёр (имя)</label>
-              <input
-                placeholder="Имя партнёра"
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Имя партнёра</label>
+              <input placeholder="Иван Иванов"
                 value={form.partnerName}
                 onChange={e => setForm(f => ({ ...f, partnerName: e.target.value }))}
-                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent"
-              />
+                className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent" />
             </div>
             <div className="px-4 py-3 border-b border-gray-50">
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Описание (чей промокод)</label>
-              <input
-                placeholder="Описание партнёрства"
+              <input placeholder="Блогер @ivan, аудитория 50к"
                 value={form.partnerDescription}
                 onChange={e => setForm(f => ({ ...f, partnerDescription: e.target.value }))}
-                className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent"
-              />
+                className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent" />
             </div>
             <div className="px-4 py-4">
               <button type="submit"
@@ -187,17 +216,13 @@ export default function AdminPromo() {
           <>
             {active.length > 0 && (
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
-                  Активные · {active.length}
-                </p>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Активные · {active.length}</p>
                 {active.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} onPayout={payout} />)}
               </div>
             )}
             {inactive.length > 0 && (
               <div className="flex flex-col gap-2 mt-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
-                  Отключены · {inactive.length}
-                </p>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Отключены · {inactive.length}</p>
                 {inactive.map(c => <PromoCard key={c._id} c={c} onToggle={toggle} onPayout={payout} />)}
               </div>
             )}
@@ -210,16 +235,20 @@ export default function AdminPromo() {
   )
 }
 
-function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: string, active: boolean) => void; onPayout: (id: string) => void }) {
+function PromoCard({ c, onToggle, onPayout }: {
+  c: PromoCode; onToggle: (id: string, active: boolean) => void; onPayout: (id: string) => void
+}) {
   const usedPct = c.maxUses > 0 ? Math.round((c.usedCount / c.maxUses) * 100) : 0
+  const paidOut = Math.max(0, (c.earningsTotal || 0) - (c.earningsAccumulated || 0))
 
   return (
     <div className={`bg-white rounded-2xl border overflow-hidden transition-opacity ${
       c.active ? 'border-gray-100' : 'border-gray-100 opacity-60'
     }`}>
       <div className="px-4 pt-4 pb-3">
+
+        {/* Header: code + toggle */}
         <div className="flex items-start justify-between gap-2 mb-3">
-          {/* Code + discount badge */}
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-[#FFF9E0] flex items-center justify-center flex-shrink-0">
               <Tag size={16} className="text-[#B8960C]" />
@@ -227,12 +256,10 @@ function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: str
             <div>
               <p className="font-extrabold text-base font-mono tracking-widest text-gray-900 leading-tight">{c.code}</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {c.discount}{c.type === 'percent' ? '%' : ' HK$'} скидка
+                {c.discount}{c.type === 'percent' ? '%' : ' HK$'} скидка покупателю
               </p>
             </div>
           </div>
-
-          {/* Toggle */}
           <button onClick={() => onToggle(c._id, !c.active)}
             className={`relative w-14 h-7 rounded-full transition-colors duration-200 flex-shrink-0 ${
               c.active ? 'bg-emerald-400' : 'bg-gray-200'
@@ -250,6 +277,11 @@ function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: str
             {c.partnerDescription && (
               <p className="text-[11px] text-blue-400 mt-0.5">{c.partnerDescription}</p>
             )}
+            {c.commissionRate > 0 && (
+              <p className="text-[11px] text-blue-500 font-semibold mt-1">
+                Комиссия: {c.commissionRate}{c.commissionType === 'percent' ? '%' : ' HK$'} с каждой продажи
+              </p>
+            )}
           </div>
         )}
 
@@ -260,32 +292,36 @@ function PromoCard({ c, onToggle, onPayout }: { c: PromoCode; onToggle: (id: str
             <span className="text-[11px] font-bold text-gray-700">{c.usedCount} / {c.maxUses}</span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${usedPct >= 90 ? 'bg-red-400' : usedPct >= 60 ? 'bg-amber-400' : 'bg-emerald-400'}`}
-              style={{ width: `${usedPct}%` }}
-            />
+            <div className={`h-full rounded-full transition-all ${
+              usedPct >= 90 ? 'bg-red-400' : usedPct >= 60 ? 'bg-amber-400' : 'bg-emerald-400'
+            }`} style={{ width: `${Math.max(usedPct, usedPct > 0 ? 4 : 0)}%` }} />
           </div>
         </div>
 
         {/* Earnings */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
           <div>
-            <p className="text-[11px] text-gray-400">Накоплено</p>
-            <p className="text-sm font-extrabold text-gray-900">{(c.earningsAccumulated || 0).toFixed(0)} HK$</p>
+            <p className="text-[11px] text-gray-400 flex items-center gap-1">
+              <Percent size={10} /> Накоплено
+            </p>
+            <p className={`text-base font-extrabold ${(c.earningsAccumulated || 0) > 0 ? 'text-emerald-600' : 'text-gray-900'}`}>
+              {(c.earningsAccumulated || 0).toFixed(0)} HK$
+            </p>
           </div>
+          <div className="w-px h-8 bg-gray-200" />
           <div className="text-right">
-            <p className="text-[11px] text-gray-400">Всего выплачено</p>
-            <p className="text-sm font-bold text-gray-500">{((c.earningsTotal || 0) - (c.earningsAccumulated || 0)).toFixed(0)} HK$</p>
+            <p className="text-[11px] text-gray-400 flex items-center gap-1 justify-end">
+              <DollarSign size={10} /> Выплачено
+            </p>
+            <p className="text-base font-bold text-gray-500">{paidOut.toFixed(0)} HK$</p>
           </div>
         </div>
 
         {/* Payout button */}
         {(c.earningsAccumulated || 0) > 0 && (
-          <button
-            onClick={() => onPayout(c._id)}
-            className="mt-2 w-full bg-emerald-500 text-white text-xs font-bold rounded-xl py-2 px-3"
-          >
-            Выплатить {(c.earningsAccumulated || 0).toFixed(0)} HK$
+          <button onClick={() => onPayout(c._id)}
+            className="mt-2.5 w-full bg-emerald-500 text-white text-sm font-bold rounded-xl py-2.5 px-3 flex items-center justify-center gap-2">
+            💸 Выплатить {(c.earningsAccumulated || 0).toFixed(0)} HK$
           </button>
         )}
       </div>

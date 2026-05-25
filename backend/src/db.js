@@ -85,6 +85,8 @@ export async function initDb() {
     ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS partner_description TEXT DEFAULT '';
     ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS earnings_accumulated NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS earnings_total NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS commission_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS commission_type TEXT NOT NULL DEFAULT 'percent';
 
     -- Quest gallery images
     ALTER TABLE quests ADD COLUMN IF NOT EXISTS gallery_images JSONB DEFAULT '[]';
