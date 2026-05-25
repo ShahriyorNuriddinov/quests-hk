@@ -49,9 +49,10 @@ export default function QuestReview() {
       setDone(true)
       setTimeout(() => navigate('/quests'), 2500)
     } catch (e: any) {
-      const msg = e?.response?.data?.error
+      const msg = e?.response?.data?.error || ''
       if (msg === 'Purchase required') setError('Квест не куплен')
-      else if (e?.response?.status === 409 || msg?.includes?.('unique')) setError('Вы уже оставили отзыв на этот квест')
+      else if (e?.response?.status === 409 || msg.includes('already')) setError('Вы уже оставили отзыв на этот квест')
+      else if (msg.includes('Unsupported') || msg.includes('format')) setError('Неподдерживаемый формат фото. Используйте JPG или PNG.')
       else setError('Ошибка отправки. Попробуйте ещё раз.')
       setSending(false)
     }

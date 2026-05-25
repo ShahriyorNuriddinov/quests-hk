@@ -34,7 +34,13 @@ router.post('/', requireAuth, upload.array('photos', 4), async (req, res) => {
     const review = await createReview({ userId: req.user.id, questId, rating: parseInt(rating), text, photos })
     res.status(201).json(review)
   } catch (err) {
-    console.error('review error:', err)
+    console.error('review error:', err?.message || err)
+    if (err?.message?.includes('mime type') || err?.message?.includes('not supported')) {
+      return res.status(400).json({ error: 'Unsupported image format. Use JPG, PNG or WebP.' })
+    }
+    if (err?.code === '23505') {
+      return res.status(409).json({ error: 'Review already exists' })
+    }
     res.status(500).json({ error: 'Server error' })
   }
 })
