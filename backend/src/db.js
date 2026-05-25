@@ -91,6 +91,26 @@ export async function initDb() {
     -- Quest city
     ALTER TABLE quests ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'hk';
 
+    -- Cities management
+    CREATE TABLE IF NOT EXISTS cities (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      code TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      flag TEXT NOT NULL DEFAULT '',
+      active BOOLEAN NOT NULL DEFAULT false,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Seed default cities if empty
+    INSERT INTO cities (code, name, flag, active, sort_order)
+    VALUES
+      ('hk', 'Hong Kong', '🇭🇰', true, 0),
+      ('macau', 'Macau', '🇲🇴', false, 1),
+      ('guangzhou', 'Guangzhou', '🇨🇳', false, 2)
+    ON CONFLICT (code) DO NOTHING;
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);

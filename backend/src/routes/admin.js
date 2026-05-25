@@ -6,6 +6,7 @@ import { findAllQuests, findQuestById, createQuest, updateQuest, deleteQuest, co
 import { countUsers, countTotalPurchases, findAllUsers, findAllSales, getTotalRevenue, getSalesChart } from '../models/User.js'
 import { findAllReviews, updateReview, deleteReview, countReviews } from '../models/Review.js'
 import { findAllPromoCodes, createPromoCode, updatePromoCode, countActivePromoCodes, payoutPromo } from '../models/PromoCode.js'
+import { findAllCities, updateCity, createCity, deleteCity } from '../models/City.js'
 import { pool } from '../db.js'
 import { uploadFile } from '../storage.js'
 
@@ -179,6 +180,34 @@ router.post('/promo/:id/payout', async (req, res) => {
     const promo = await payoutPromo(req.params.id)
     if (!promo) return res.status(404).json({ error: 'Not found' })
     res.json(promo)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// ── Cities ─────────────────────────────────────────────────────
+router.get('/cities', async (_, res) => {
+  try {
+    res.json(await findAllCities())
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.post('/cities', async (req, res) => {
+  try {
+    const city = await createCity(req.body)
+    res.status(201).json(city)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.patch('/cities/:id', async (req, res) => {
+  try {
+    const city = await updateCity(req.params.id, req.body)
+    res.json(city)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.delete('/cities/:id', async (req, res) => {
+  try {
+    await deleteCity(req.params.id)
+    res.json({ ok: true })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 

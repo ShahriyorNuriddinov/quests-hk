@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart2, Map, MessageSquare, Tag } from 'lucide-react'
+import { BarChart2, Map, MessageSquare, Tag, Globe } from 'lucide-react'
 
 const items = [
-  { to: '/admin',          Icon: BarChart2,    label: 'Статистика' },
+  { to: '/admin',          Icon: BarChart2,    label: 'Стат.' },
   { to: '/admin/quests',   Icon: Map,          label: 'Квесты'     },
   { to: '/admin/reviews',  Icon: MessageSquare, label: 'Отзывы'    },
   { to: '/admin/promo',    Icon: Tag,          label: 'Промо'      },
+  { to: '/admin/cities',   Icon: Globe,        label: 'Города'     },
 ]
 
 export default function AdminNav() {
