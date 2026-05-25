@@ -39,8 +39,8 @@ function fireConfetti() {
   setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1, y: 0.65 } }), 400)
 }
 
-function AchievementOverlay({ stepsCount, elapsed, onContinue }: {
-  stepsCount: number; elapsed: number; onContinue: () => void
+function AchievementOverlay({ stepsCount, elapsed, hasPhotos, onContinue }: {
+  stepsCount: number; elapsed: number; hasPhotos: boolean; onContinue: () => void
 }) {
   useEffect(() => { fireConfetti() }, [])
 
@@ -65,7 +65,7 @@ function AchievementOverlay({ stepsCount, elapsed, onContinue }: {
 
       <button onClick={onContinue}
         className="w-full max-w-sm bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-        Оставить отзыв →
+        {hasPhotos ? '📸 Посмотреть фото →' : 'Оставить отзыв →'}
       </button>
     </div>
   )
@@ -83,6 +83,7 @@ export default function QuestPlay() {
   const [wrongModal, setWrongModal] = useState(false)
   const [hintVisible, setHintVisible] = useState(false)
   const [showAchievement, setShowAchievement] = useState(false)
+  const [showAlbum, setShowAlbum] = useState(false)
   const [loading, setLoading] = useState(true)
   const startTimeRef = useRef<number>(Date.now())
   const elapsedRef = useRef<number>(0)
@@ -158,11 +159,29 @@ export default function QuestPlay() {
     </div>
   )
 
+  const photoStepCount = steps.filter(s => s.type === 'photo').length
+
+  if (showAlbum) return (
+    <PhotoAlbumScreen
+      questId={id!}
+      onReview={() => navigate(`/quest/${id}/review`)}
+      onSkip={() => navigate('/quests')}
+    />
+  )
+
   if (showAchievement) return (
     <AchievementOverlay
       stepsCount={steps.length}
       elapsed={elapsedRef.current}
-      onContinue={() => navigate(`/quest/${id}/review`)}
+      hasPhotos={photoStepCount > 0}
+      onContinue={() => {
+        if (photoStepCount > 0) {
+          setShowAchievement(false)
+          setShowAlbum(true)
+        } else {
+          navigate(`/quest/${id}/review`)
+        }
+      }}
     />
   )
 
@@ -429,7 +448,7 @@ export default function QuestPlay() {
 
   // ── PHOTO STEP ──────────────────────────────────────────────
   if (step.type === 'photo') {
-    return <PhotoStep step={step} progress={progress} current={current} total={steps.length} onBack={() => navigate(-1)} onNext={next} />
+    return <PhotoStep step={step} progress={progress} current={current} total={steps.length} questId={id!} onBack={() => navigate(-1)} onNext={next} />
   }
 
   // ── INFO STEP ─────────────────────────────────────────────────
@@ -459,17 +478,33 @@ export default function QuestPlay() {
   )
 }
 
-function PhotoStep({ step, progress, current, total, onBack, onNext }: {
-  step: Step; progress: number; current: number; total: number; onBack: () => void; onNext: () => void
+function PhotoStep({ step, progress, current, total, questId, onBack, onNext }: {
+  step: Step; progress: number; current: number; total: number
+  questId: string; onBack: () => void; onNext: () => void
 }) {
   const [preview, setPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const url = URL.createObjectURL(file)
-    setPreview(url)
+    setPreview(URL.createObjectURL(file))
+    setUploading(true)
+    setUploadError(false)
+    try {
+      const form = new FormData()
+      form.append('photo', file)
+      form.append('stepIndex', String(current))
+      await api.post(`/quests/${questId}/photos`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    } catch {
+      setUploadError(true)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -492,9 +527,19 @@ function PhotoStep({ step, progress, current, total, onBack, onNext }: {
           <div className="relative rounded-3xl overflow-hidden mb-4 shadow-sm">
             <img src={preview} alt="Ваше фото" className="w-full h-64 object-cover" />
             <button
-              onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = '' }}
+              onClick={() => { setPreview(null); setUploadError(false); if (fileRef.current) fileRef.current.value = '' }}
               className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
             >×</button>
+            {uploading && (
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            {uploadError && (
+              <div className="absolute bottom-3 left-3 right-3 bg-red-500/90 rounded-xl px-3 py-1.5 text-white text-xs font-medium text-center">
+                Не удалось сохранить — можно продолжить
+              </div>
+            )}
           </div>
         ) : (
           <button
@@ -508,19 +553,83 @@ function PhotoStep({ step, progress, current, total, onBack, onNext }: {
             <span className="text-xs text-gray-300">или выберите из галереи</span>
           </button>
         )}
-
-        {!preview && (
-          <p className="text-xs text-gray-300 text-center">Фото сохранится только на вашем устройстве</p>
-        )}
       </div>
       <div className="fixed bottom-0 left-0 right-0 px-6 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
         <div className="max-w-lg mx-auto">
-          <button onClick={onNext}
-            className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-            {current + 1 >= total ? 'Завершить квест 🎉' : 'Готово! Идём дальше →'}
+          <button onClick={onNext} disabled={uploading}
+            className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base disabled:opacity-60">
+            {uploading ? 'Сохраняем фото...' : current + 1 >= total ? 'Завершить квест 🎉' : 'Готово! Идём дальше →'}
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function PhotoAlbumScreen({ questId, onReview, onSkip }: {
+  questId: string; onReview: () => void; onSkip: () => void
+}) {
+  const [photos, setPhotos] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [lightbox, setLightbox] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.get(`/quests/${questId}/photos`)
+      .then(r => setPhotos((r.data as { url: string }[]).map(p => p.url)))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [questId])
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="px-6 pt-12 pb-6 text-center bg-gradient-to-b from-yellow-50 to-white">
+        <div className="text-5xl mb-3">📸</div>
+        <h1 className="text-2xl font-extrabold text-gray-900">Ваши фото</h1>
+        <p className="text-gray-400 text-sm mt-1">
+          {loading ? 'Загружаем...' : photos.length > 0 ? `${photos.length} фото из путешествия` : 'Фото не найдены'}
+        </p>
+      </div>
+
+      <div className="flex-1 px-4 pb-40">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="w-8 h-8 border-4 border-[#FFD600] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : photos.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-3">📷</div>
+            <p className="text-gray-400 text-sm">Фотографии не были сделаны</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {photos.map((url, i) => (
+              <button key={i} onClick={() => setLightbox(url)}
+                className="aspect-square rounded-2xl overflow-hidden active:opacity-80">
+                <img src={url} alt={`Фото ${i + 1}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 px-5 pb-8 bg-gradient-to-t from-white via-white to-transparent pt-6">
+        <div className="max-w-lg mx-auto flex flex-col gap-3">
+          <button onClick={onReview}
+            className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
+            Написать отзыв →
+          </button>
+          <button onClick={onSkip} className="text-sm text-gray-300 text-center py-2 font-medium">
+            Пропустить
+          </button>
+        </div>
+      </div>
+
+      {lightbox && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="" className="max-w-full max-h-full rounded-2xl object-contain" />
+        </div>
+      )}
     </div>
   )
 }

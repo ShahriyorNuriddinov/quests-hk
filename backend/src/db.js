@@ -113,10 +113,21 @@ export async function initDb() {
       ('guangzhou', 'Guangzhou', '🇨🇳', false, 2)
     ON CONFLICT (code) DO NOTHING;
 
+    -- Quest step photos (uploaded during play)
+    CREATE TABLE IF NOT EXISTS quest_photos (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      quest_id UUID NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+      step_index INTEGER NOT NULL DEFAULT 0,
+      photo_url TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);
     CREATE INDEX IF NOT EXISTS idx_user_quests_quest_id ON user_quests(quest_id);
+    CREATE INDEX IF NOT EXISTS idx_quest_photos_user_quest ON quest_photos(user_id, quest_id);
   `)
   console.log('Database initialized')
 }

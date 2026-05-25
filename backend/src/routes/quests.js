@@ -1,10 +1,18 @@
 import { Router } from 'express'
+import multer from 'multer'
 import { findAllQuests, findQuestById } from '../models/Quest.js'
 import { findAllCities } from '../models/City.js'
 import { requireAuth } from '../middleware/auth.js'
 import { pool } from '../db.js'
+import { uploadFile } from '../storage.js'
 
 const router = Router()
+
+const photoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_, file, cb) => cb(null, file.mimetype.startsWith('image/')),
+})
 
 router.get('/', async (req, res) => {
   try {
@@ -87,6 +95,34 @@ router.get('/:id/progress', requireAuth, async (req, res) => {
     if (!rows.length) return res.json({ progress: null, completed: false })
     res.json({ progress: rows[0].progress, completed: rows[0].completed })
   } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
+router.post('/:id/photos', requireAuth, photoUpload.single('photo'), async (req, res) => {
+  try {
+    const { stepIndex = 0 } = req.body
+    if (!req.file) return res.status(400).json({ error: 'No file' })
+    const url = await uploadFile(req.file.buffer, req.file.mimetype, 'quest-photos')
+    await pool.query(
+      'INSERT INTO quest_photos (user_id, quest_id, step_index, photo_url) VALUES ($1, $2, $3, $4)',
+      [req.user.id, req.params.id, parseInt(stepIndex) || 0, url]
+    )
+    res.json({ url })
+  } catch (err) {
+    console.error('quest photo upload error:', err?.message || err)
+    res.status(500).json({ error: 'Upload failed' })
+  }
+})
+
+router.get('/:id/photos', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT step_index, photo_url FROM quest_photos WHERE user_id = $1 AND quest_id = $2 ORDER BY step_index, created_at',
+      [req.user.id, req.params.id]
+    )
+    res.json(rows.map(r => ({ stepIndex: r.step_index, url: r.photo_url })))
+  } catch {
+    res.status(500).json({ error: 'Server error' })
+  }
 })
 
 export default router
