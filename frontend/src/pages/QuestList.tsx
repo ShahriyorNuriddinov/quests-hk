@@ -32,7 +32,7 @@ export default function QuestList() {
   const navigate = useNavigate()
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
-  const [city, setCity] = useState('hk')
+  const [city, setCity] = useState(localStorage.getItem('city') || 'hk')
   const [cities, setCities] = useState<City[]>([])
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function QuestList() {
             {cities.map(c => (
               <button
                 key={c.code}
-                onClick={() => c.active && setCity(c.code)}
+                onClick={() => { if (c.active) { setCity(c.code); localStorage.setItem('city', c.code) } }}
                 disabled={!c.active}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                   city === c.code
@@ -85,7 +85,7 @@ export default function QuestList() {
                       : 'bg-gray-50 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                <span>{c.flag}</span>
+                <span className="text-xs font-bold uppercase">{c.code.slice(0, 2)}</span>
                 <span>{c.name}</span>
                 {!c.active && <span className="text-[10px] ml-1">(скоро)</span>}
               </button>

@@ -44,9 +44,9 @@ export default function LangSelect() {
     } else {
       // Reload so Google Translate activates on the new page
       if (lang.gtCode) {
-        window.location.href = '/quests'
+        window.location.href = '/city'
       } else {
-        navigate('/quests')
+        navigate('/city')
       }
     }
   }
@@ -56,9 +56,9 @@ export default function LangSelect() {
     const lang = localStorage.getItem('lang') || 'ru'
     const l = LANGS.find(x => x.code === lang)
     if (l?.gtCode) {
-      window.location.href = '/quests'
+      window.location.href = '/city'
     } else {
-      navigate('/quests')
+      navigate('/city')
     }
   }
 

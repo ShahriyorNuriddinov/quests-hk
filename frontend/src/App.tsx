@@ -13,6 +13,7 @@ import AdminPromo from './pages/admin/AdminPromo'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSales from './pages/admin/AdminSales'
 import AdminCities from './pages/admin/AdminCities'
+import CitySelect from './pages/CitySelect'
 import Profile from './pages/Profile'
 import FAQ from './pages/FAQ'
 import QuestReview from './pages/QuestReview'
@@ -30,6 +31,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LangSelect />} />
+          <Route path="/city" element={<CitySelect />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/quests" element={<QuestList />} />
           <Route path="/quest/:id" element={<QuestDetail />} />
