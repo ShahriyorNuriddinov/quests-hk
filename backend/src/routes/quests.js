@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { findAllQuests, findQuestById } from '../models/Quest.js'
+import { findAllCities } from '../models/City.js'
 import { requireAuth } from '../middleware/auth.js'
 import { pool } from '../db.js'
 
@@ -79,6 +80,12 @@ router.get('/:id/progress', requireAuth, async (req, res) => {
     )
     if (!rows.length) return res.json({ progress: null, completed: false })
     res.json({ progress: rows[0].progress, completed: rows[0].completed })
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
+router.get('/cities', async (_, res) => {
+  try {
+    res.json(await findAllCities())
   } catch { res.status(500).json({ error: 'Server error' }) }
 })
 

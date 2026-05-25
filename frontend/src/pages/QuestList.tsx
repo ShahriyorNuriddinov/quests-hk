@@ -19,11 +19,13 @@ interface Quest {
   coverImage?: string
 }
 
-const CITIES = [
-  { code: 'hk', label: 'Гонконг', flag: '🇭🇰', active: true },
-  { code: 'macau', label: 'Макао', flag: '🇲🇴', active: true },
-  { code: 'guangzhou', label: 'Гуанчжоу', flag: '🇨🇳', active: false },
-]
+interface City {
+  _id: string
+  code: string
+  name: string
+  flag: string
+  active: boolean
+}
 
 export default function QuestList() {
   const { user } = useAuth()
@@ -31,6 +33,17 @@ export default function QuestList() {
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
   const [city, setCity] = useState('hk')
+  const [cities, setCities] = useState<City[]>([])
+
+  useEffect(() => {
+    api.get('/quests/cities').then(r => setCities(r.data)).catch(() => {
+      setCities([
+        { _id: '1', code: 'hk', name: 'Hong Kong', flag: '🇭🇰', active: true },
+        { _id: '2', code: 'macau', name: 'Macau', flag: '🇲🇴', active: false },
+        { _id: '3', code: 'guangzhou', name: 'Guangzhou', flag: '🇨🇳', active: false },
+      ])
+    })
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -56,28 +69,30 @@ export default function QuestList() {
       </div>
 
       {/* City selector */}
-      <div className="px-4 pt-3 pb-1 max-w-lg mx-auto">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          {CITIES.map(c => (
-            <button
-              key={c.code}
-              onClick={() => c.active && setCity(c.code)}
-              disabled={!c.active}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                city === c.code
-                  ? 'bg-[#FFD600] text-black'
-                  : c.active
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-gray-50 text-gray-300 cursor-not-allowed'
-              }`}
-            >
-              <span>{c.flag}</span>
-              <span>{c.label}</span>
-              {!c.active && <span className="text-[10px] ml-1">(скоро)</span>}
-            </button>
-          ))}
+      {cities.length > 0 && (
+        <div className="px-4 pt-3 pb-1 max-w-lg mx-auto">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {cities.map(c => (
+              <button
+                key={c.code}
+                onClick={() => c.active && setCity(c.code)}
+                disabled={!c.active}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                  city === c.code
+                    ? 'bg-[#FFD600] text-black'
+                    : c.active
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                }`}
+              >
+                <span>{c.flag}</span>
+                <span>{c.name}</span>
+                {!c.active && <span className="text-[10px] ml-1">(скоро)</span>}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-4 py-4 max-w-lg mx-auto">
         {loading ? (

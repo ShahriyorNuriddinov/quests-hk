@@ -12,6 +12,7 @@ import AdminReviews from './pages/admin/AdminReviews'
 import AdminPromo from './pages/admin/AdminPromo'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSales from './pages/admin/AdminSales'
+import AdminCities from './pages/admin/AdminCities'
 import Profile from './pages/Profile'
 import FAQ from './pages/FAQ'
 import QuestReview from './pages/QuestReview'
@@ -73,6 +74,9 @@ export default function App() {
           } />
           <Route path="/admin/sales" element={
             <AdminRoute><AdminSales /></AdminRoute>
+          } />
+          <Route path="/admin/cities" element={
+            <AdminRoute><AdminCities /></AdminRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
