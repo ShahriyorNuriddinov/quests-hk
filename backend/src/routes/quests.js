@@ -13,6 +13,12 @@ router.get('/', async (req, res) => {
   } catch { res.status(500).json({ error: 'Server error' }) }
 })
 
+router.get('/cities', async (_, res) => {
+  try {
+    res.json(await findAllCities())
+  } catch { res.status(500).json({ error: 'Server error' }) }
+})
+
 router.get('/:id', async (req, res) => {
   try {
     const quest = await findQuestById(req.params.id, false)
@@ -80,12 +86,6 @@ router.get('/:id/progress', requireAuth, async (req, res) => {
     )
     if (!rows.length) return res.json({ progress: null, completed: false })
     res.json({ progress: rows[0].progress, completed: rows[0].completed })
-  } catch { res.status(500).json({ error: 'Server error' }) }
-})
-
-router.get('/cities', async (_, res) => {
-  try {
-    res.json(await findAllCities())
   } catch { res.status(500).json({ error: 'Server error' }) }
 })
 
