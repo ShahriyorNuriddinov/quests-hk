@@ -123,6 +123,34 @@ export async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    -- User profile extensions
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT '#FFD600';
+
+    -- Gamification: user achievements
+    CREATE TABLE IF NOT EXISTS user_achievements (
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      code TEXT NOT NULL,
+      earned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, code)
+    );
+
+    -- Review helpful votes
+    CREATE TABLE IF NOT EXISTS review_votes (
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+      PRIMARY KEY (user_id, review_id)
+    );
+
+    -- City launch notification signups
+    CREATE TABLE IF NOT EXISTS city_notifications (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      email TEXT NOT NULL,
+      city_code TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(email, city_code)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);

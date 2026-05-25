@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Map, Bookmark, Star, HelpCircle, MessageCircle } from 'lucide-react'
+import { Map, Bookmark, Star, HelpCircle, User } from 'lucide-react'
 
 const items = [
-  { to: '/quests',    Icon: Map,           label: 'Квесты'   },
-  { to: '/my-quests', Icon: Bookmark,      label: 'Мои'      },
-  { to: '/reviews',   Icon: Star,          label: 'Отзывы'   },
-  { to: '/faq',       Icon: HelpCircle,    label: 'FAQ'      },
-  { to: '/contacts',  Icon: MessageCircle, label: 'Контакты' },
+  { to: '/quests',    Icon: Map,      label: 'Квесты'  },
+  { to: '/my-quests', Icon: Bookmark, label: 'Мои'     },
+  { to: '/reviews',   Icon: Star,     label: 'Отзывы'  },
+  { to: '/faq',       Icon: HelpCircle, label: 'FAQ'   },
+  { to: '/profile',   Icon: User,     label: 'Профиль' },
 ]
 
 export default function BottomNav() {

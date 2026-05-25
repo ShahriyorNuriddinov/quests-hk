@@ -28,8 +28,8 @@ router.post('/supabase-sync', async (req, res) => {
 })
 
 router.get('/me', requireAuth, (req, res) => {
-  const { id, email, role, purchasedQuests } = req.user
-  res.json({ id, email, role, purchasedQuests })
+  const { id, email, role, purchasedQuests, displayName, avatarColor } = req.user
+  res.json({ id, email, role, purchasedQuests, displayName, avatarColor })
 })
 
 export default router

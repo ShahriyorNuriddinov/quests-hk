@@ -17,6 +17,7 @@ export default function QuestReview() {
   const [done, setDone] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [newAchievements, setNewAchievements] = useState<{ emoji: string; title: string }[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
   function addPhotos(files: FileList | null) {
@@ -46,8 +47,10 @@ export default function QuestReview() {
       form.append('text', text)
       photos.forEach(p => form.append('photos', p))
       await api.post('/reviews', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const checkRes = await api.post('/users/achievements/check').catch(() => ({ data: { new: [] } }))
+      setNewAchievements(checkRes.data.new || [])
       setDone(true)
-      setTimeout(() => navigate('/quests'), 2500)
+      setTimeout(() => navigate('/quests'), 3500)
     } catch (e: any) {
       const msg = e?.response?.data?.error || ''
       if (msg === 'Purchase required') setError('Квест не куплен')
@@ -76,7 +79,22 @@ export default function QuestReview() {
           🎉
         </div>
         <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Спасибо за отзыв!</h2>
-        <p className="text-gray-400 text-sm mb-8">Расскажи друзьям о своём приключении</p>
+        <p className="text-gray-400 text-sm mb-6">Расскажи друзьям о своём приключении</p>
+
+        {newAchievements.length > 0 && (
+          <div className="w-full max-w-xs bg-[#FFF9CC] border border-[#FFD600]/40 rounded-2xl px-4 py-4 mb-6">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#B8A000] mb-3">Новые достижения!</p>
+            <div className="flex flex-col gap-2">
+              {newAchievements.map(a => (
+                <div key={a.title} className="flex items-center gap-3">
+                  <span className="text-2xl">{a.emoji}</span>
+                  <span className="text-sm font-bold text-gray-800">{a.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button onClick={share}
           className="w-full max-w-xs bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base mb-3">
           {copied ? '✓ Ссылка скопирована!' : 'Поделиться результатом'}

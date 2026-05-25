@@ -8,6 +8,8 @@ function toUser(row) {
     email: row.email,
     role: row.role,
     purchasedQuests: row.purchased_quests || [],
+    displayName: row.display_name || null,
+    avatarColor: row.avatar_color || '#FFD600',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

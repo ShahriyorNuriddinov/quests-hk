@@ -6,7 +6,9 @@ import { useAuth } from '../context/AuthContext'
 import { PhotoGrid } from '../components/ImageLightbox'
 
 interface Review {
-  id: string; rating: number; text: string; photos: string[]; createdAt: string; userEmail: string
+  id: string; rating: number; text: string; photos: string[]; createdAt: string
+  userEmail: string; userDisplayName: string | null
+  helpfulCount: number; votedByMe: boolean
 }
 interface Quest {
   _id: string; title: string; description: string; duration: string; distance: string
@@ -25,6 +27,50 @@ function StarRow({ n, size = 12 }: { n: number; size?: number }) {
   )
 }
 
+function ReviewCard({ review: r, canVote, onVote }: {
+  review: Review
+  canVote: boolean
+  onVote: () => void
+}) {
+  const name = r.userDisplayName || r.userEmail.split('@')[0]
+  const initial = name[0].toUpperCase()
+  return (
+    <div className="border border-gray-100 rounded-2xl p-4">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-8 h-8 rounded-full bg-[#FFD600] flex items-center justify-center text-xs font-bold flex-shrink-0">
+          {initial}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-gray-800 truncate">{name}</div>
+          <StarRow n={r.rating} />
+        </div>
+        <span className="text-[11px] text-gray-300">
+          {new Date(r.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+        </span>
+      </div>
+      {r.text && <p className="text-sm text-gray-600 leading-relaxed">{r.text}</p>}
+      {r.photos?.length > 0 && (
+        <div className="mt-3"><PhotoGrid photos={r.photos} /></div>
+      )}
+      <div className="mt-3 flex items-center gap-1.5">
+        <button
+          onClick={onVote}
+          disabled={!canVote}
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+            r.votedByMe
+              ? 'bg-[#FFF9CC] border-[#FFD600] text-[#B8A000] font-semibold'
+              : canVote
+                ? 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500'
+                : 'border-gray-100 text-gray-300 cursor-default'
+          }`}
+        >
+          👍 Полезно{r.helpfulCount > 0 && ` · ${r.helpfulCount}`}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -38,8 +84,9 @@ export default function QuestDetail() {
 
   useEffect(() => {
     api.get(`/quests/${id}`).then(r => setQuest(r.data)).finally(() => setLoading(false))
-    api.get(`/quests/${id}/reviews`).then(r => setReviews(r.data))
-  }, [id])
+    const userId = user?.id || ''
+    api.get(`/quests/${id}/reviews${userId ? `?userId=${userId}` : ''}`).then(r => setReviews(r.data))
+  }, [id, user?.id])
 
   useEffect(() => {
     if (paymentSuccess) {
@@ -170,25 +217,21 @@ export default function QuestDetail() {
             </h2>
             <div className="flex flex-col gap-3">
               {reviews.map(r => (
-                <div key={r.id} className="border border-gray-100 rounded-2xl p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-[#FFD600] flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {r.userEmail.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-gray-800 truncate">{r.userEmail.split('@')[0]}</div>
-                      <StarRow n={r.rating} />
-                    </div>
-                    <span className="text-[11px] text-gray-300">
-                      {new Date(r.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-                  {r.text && <p className="text-sm text-gray-600 leading-relaxed">{r.text}</p>}
-                  {r.photos?.length > 0 && (
-                    <div className="mt-3">
-                      <PhotoGrid photos={r.photos} /></div>
-                  )}
-                </div>
+                <ReviewCard
+                  key={r.id}
+                  review={r}
+                  canVote={!!user && user.email !== r.userEmail}
+                  onVote={async () => {
+                    if (!user) return
+                    try {
+                      const res = await api.post(`/reviews/${r.id}/vote`)
+                      setReviews(prev => prev.map(x => x.id === r.id
+                        ? { ...x, votedByMe: res.data.voted, helpfulCount: x.helpfulCount + (res.data.voted ? 1 : -1) }
+                        : x
+                      ))
+                    } catch {}
+                  }}
+                />
               ))}
             </div>
           </div>

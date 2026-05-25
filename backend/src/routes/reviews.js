@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { createReview, findApprovedReviews } from '../models/Review.js'
 import { uploadFile } from '../storage.js'
 import { broadcast } from '../events.js'
+import { pool } from '../db.js'
 
 const router = Router()
 
@@ -45,6 +46,28 @@ router.post('/', requireAuth, upload.array('photos', 4), async (req, res) => {
     }
     res.status(500).json({ error: 'Server error' })
   }
+})
+
+router.post('/:id/vote', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT 1 FROM review_votes WHERE user_id = $1 AND review_id = $2',
+      [req.user.id, req.params.id]
+    )
+    if (rows.length > 0) {
+      await pool.query(
+        'DELETE FROM review_votes WHERE user_id = $1 AND review_id = $2',
+        [req.user.id, req.params.id]
+      )
+      res.json({ voted: false })
+    } else {
+      await pool.query(
+        'INSERT INTO review_votes (user_id, review_id) VALUES ($1, $2)',
+        [req.user.id, req.params.id]
+      )
+      res.json({ voted: true })
+    }
+  } catch { res.status(500).json({ error: 'Server error' }) }
 })
 
 export default router

@@ -37,17 +37,27 @@ router.get('/:id', async (req, res) => {
 
 router.get('/:id/reviews', async (req, res) => {
   try {
+    const userId = req.query.userId || null
     const { rows } = await pool.query(`
       SELECT r.id, r.rating, r.text, r.photos, r.created_at,
-             u.email AS user_email
+             u.email AS user_email,
+             u.display_name AS user_display_name,
+             COUNT(rv.user_id)::int AS helpful_count,
+             ${userId ? 'MAX(CASE WHEN rv.user_id = $2::uuid THEN 1 ELSE 0 END)::boolean AS voted_by_me' : 'false AS voted_by_me'}
       FROM reviews r
       JOIN users u ON u.id = r.user_id
+      LEFT JOIN review_votes rv ON rv.review_id = r.id
       WHERE r.quest_id = $1 AND r.approved = true
-      ORDER BY r.created_at DESC
-    `, [req.params.id])
+      GROUP BY r.id, u.email, u.display_name
+      ORDER BY helpful_count DESC, r.created_at DESC
+    `, userId ? [req.params.id, userId] : [req.params.id])
     res.json(rows.map(r => ({
       id: r.id, rating: r.rating, text: r.text,
-      photos: r.photos || [], createdAt: r.created_at, userEmail: r.user_email,
+      photos: r.photos || [], createdAt: r.created_at,
+      userEmail: r.user_email,
+      userDisplayName: r.user_display_name || null,
+      helpfulCount: r.helpful_count,
+      votedByMe: r.voted_by_me,
     })))
   } catch { res.status(500).json({ error: 'Server error' }) }
 })

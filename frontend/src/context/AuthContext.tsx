@@ -7,6 +7,8 @@ interface User {
   email: string
   role: 'user' | 'admin'
   purchasedQuests: string[]
+  displayName: string | null
+  avatarColor: string
 }
 
 interface AuthCtx {
@@ -16,6 +18,7 @@ interface AuthCtx {
   verifyCode: (email: string, code: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
+  updateUser: (patch: Partial<User>) => void
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -58,7 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(r.data)
   }
 
-  return <Ctx.Provider value={{ user, loading, sendCode, verifyCode, logout, refreshUser }}>{children}</Ctx.Provider>
+  function updateUser(patch: Partial<User>) {
+    setUser(u => u ? { ...u, ...patch } : u)
+  }
+
+  return <Ctx.Provider value={{ user, loading, sendCode, verifyCode, logout, refreshUser, updateUser }}>{children}</Ctx.Provider>
 }
 
 export function useAuth() {
