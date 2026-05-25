@@ -17,6 +17,7 @@ import CitySelect from './pages/CitySelect'
 import Profile from './pages/Profile'
 import FAQ from './pages/FAQ'
 import QuestReview from './pages/QuestReview'
+import QuestAlbum from './pages/QuestAlbum'
 import Reviews from './pages/Reviews'
 import Contacts from './pages/Contacts'
 import QuestPay from './pages/QuestPay'
@@ -52,6 +53,9 @@ export default function App() {
           } />
           <Route path="/quest/:id/review" element={
             <ProtectedRoute><QuestReview /></ProtectedRoute>
+          } />
+          <Route path="/quest/:id/album" element={
+            <ProtectedRoute><QuestAlbum /></ProtectedRoute>
           } />
           <Route path="/payment" element={
             <ProtectedRoute><Payment /></ProtectedRoute>

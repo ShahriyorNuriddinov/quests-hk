@@ -99,7 +99,7 @@ export default function QuestPlay() {
       setQuestTitle(questRes.data.title || '')
       const { progress, completed } = progRes.data
       if (completed) {
-        navigate(`/quest/${id}/review`)
+        navigate(`/quest/${id}/album`)
       } else if (progress) {
         setCurrent(progress.current ?? -1)
       }

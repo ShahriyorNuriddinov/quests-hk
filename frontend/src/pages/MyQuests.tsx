@@ -57,7 +57,7 @@ export default function MyQuests() {
               return (
                 <Link
                   key={q._id}
-                  to={q.completed ? `/quest/${q._id}/review` : `/quest/${q._id}/play`}
+                  to={q.completed ? `/quest/${q._id}/album` : `/quest/${q._id}/play`}
                   className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col active:scale-[0.99] transition-transform"
                 >
                   {/* Cover */}
