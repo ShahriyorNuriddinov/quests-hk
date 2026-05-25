@@ -78,6 +78,11 @@ export default function AdminStats() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [showNotify, setShowNotify] = useState(false)
 
+  async function testNotif() {
+    try { await api.post('/admin/test-notif', { type: 'purchase', message: '🧪 Тест уведомление' }) }
+    catch {}
+  }
+
   useEffect(() => {
     api.get('/admin/stats').then(r => setStats(r.data))
   }, [])
@@ -101,11 +106,17 @@ export default function AdminStats() {
             <p className="text-xs text-gray-400 font-medium">Панель управления</p>
             <h1 className="text-xl font-extrabold leading-tight">Статистика</h1>
           </div>
-          <button onClick={() => setShowNotify(true)}
-            className="flex items-center gap-1.5 bg-[#FFD600] rounded-full px-4 py-2 text-xs font-bold shadow-sm">
-            <Send size={12} />
-            Рассылка
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={testNotif}
+              className="flex items-center gap-1 bg-gray-100 rounded-full px-3 py-2 text-xs font-bold text-gray-500">
+              🔔 Тест
+            </button>
+            <button onClick={() => setShowNotify(true)}
+              className="flex items-center gap-1.5 bg-[#FFD600] rounded-full px-4 py-2 text-xs font-bold shadow-sm">
+              <Send size={12} />
+              Рассылка
+            </button>
+          </div>
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import nodemailer from 'nodemailer'
 import { requireAuth, requireAdmin } from '../middleware/auth.js'
-import { subscribe } from '../events.js'
+import { subscribe, broadcast } from '../events.js'
 import { findAllQuests, findQuestById, createQuest, updateQuest, deleteQuest, countQuests } from '../models/Quest.js'
 import { countUsers, countTotalPurchases, findAllUsers, findAllSales, getTotalRevenue, getSalesChart } from '../models/User.js'
 import { findAllReviews, updateReview, deleteReview, countReviews } from '../models/Review.js'
@@ -213,6 +213,7 @@ router.delete('/cities/:id', async (req, res) => {
 })
 
 router.get('/events', (req, res) => {
+  if (req.socket) req.socket.setNoDelay(true)
   res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -221,14 +222,26 @@ router.get('/events', (req, res) => {
   })
   res.flushHeaders()
   res.write('data: {"type":"connected"}\n\n')
+  console.log('[SSE] admin client connected, total:', /* will be set after subscribe */ 0)
 
   const unsub = subscribe(res)
+
   const ping = setInterval(() => {
     try { res.write(': ping\n\n') }
     catch { clearInterval(ping); unsub() }
-  }, 25000)
+  }, 20000)
 
-  req.on('close', () => { clearInterval(ping); unsub() })
+  req.on('close', () => {
+    console.log('[SSE] admin client disconnected')
+    clearInterval(ping)
+    unsub()
+  })
+})
+
+router.post('/test-notif', (req, res) => {
+  const { type = 'purchase', message = 'Тест уведомление' } = req.body
+  broadcast(type, { message })
+  res.json({ ok: true })
 })
 
 export default router
