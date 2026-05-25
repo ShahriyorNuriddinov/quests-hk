@@ -497,9 +497,7 @@ function PhotoStep({ step, progress, current, total, questId, onBack, onNext }: 
       const form = new FormData()
       form.append('photo', file)
       form.append('stepIndex', String(current))
-      await api.post(`/quests/${questId}/photos`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      await api.post(`/quests/${questId}/photos`, form)
     } catch {
       setUploadError(true)
     } finally {
