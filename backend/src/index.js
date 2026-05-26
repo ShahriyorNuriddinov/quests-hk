@@ -12,6 +12,7 @@ import paymentRoutes from './routes/payments.js'
 import adminRoutes from './routes/admin.js'
 import reviewRoutes from './routes/reviews.js'
 import eventRoutes from './routes/events.js'
+import partnerRoutes from './routes/partner.js'
 
 if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET env variable is not set')
@@ -32,6 +33,7 @@ app.use('/api/payments', paymentRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/reviews', reviewRoutes)
 app.use('/api/events', eventRoutes)
+app.use('/api/partner', partnerRoutes)
 
 const PORT = process.env.PORT || 4000
 

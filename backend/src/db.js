@@ -163,6 +163,28 @@ export async function initDb() {
       UNIQUE(email, city_code)
     );
 
+    -- Partner system
+    ALTER TABLE quests ADD COLUMN IF NOT EXISTS partner_id UUID REFERENCES users(id) ON DELETE SET NULL;
+
+    CREATE TABLE IF NOT EXISTS partner_profiles (
+      user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      business_name TEXT,
+      payout_percent INTEGER NOT NULL DEFAULT 70,
+      payout_details TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS partner_earnings (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      partner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      quest_id UUID REFERENCES quests(id) ON DELETE SET NULL,
+      buyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      amount NUMERIC(10,2) NOT NULL,
+      total_price NUMERIC(10,2) NOT NULL,
+      paid_out BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);

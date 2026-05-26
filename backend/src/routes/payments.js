@@ -4,6 +4,25 @@ import { findQuestById } from '../models/Quest.js'
 import { findPromoByCode, incrementPromoUsed, incrementPromoUsedByCode, addPromoEarnings, calcCommission } from '../models/PromoCode.js'
 import { addPurchasedQuest } from '../models/User.js'
 import { broadcast } from '../events.js'
+import { pool } from '../db.js'
+
+async function recordPartnerEarning(quest, buyerId, paidAmount) {
+  if (!quest.partnerId) return
+  try {
+    const { rows } = await pool.query(
+      'SELECT payout_percent FROM partner_profiles WHERE user_id = $1',
+      [quest.partnerId]
+    )
+    const percent = rows[0]?.payout_percent ?? 70
+    const earning = parseFloat((paidAmount * percent / 100).toFixed(2))
+    await pool.query(
+      'INSERT INTO partner_earnings (partner_id, quest_id, buyer_id, amount, total_price) VALUES ($1,$2,$3,$4,$5)',
+      [quest.partnerId, quest._id, buyerId, earning, paidAmount]
+    )
+  } catch (err) {
+    console.error('[partner earning]', err.message)
+  }
+}
 
 const router = Router()
 
@@ -68,6 +87,7 @@ router.post('/checkout', requireAuth, async (req, res) => {
   // Free quest or no payment keys — grant access directly
   if (amount <= 0 || !process.env.AIRWALLEX_CLIENT_ID) {
     await addPurchasedQuest(req.user.id, questId)
+    await recordPartnerEarning(quest, req.user.id, amount)
     broadcast('purchase', { message: `Куплен квест: ${quest.title}`, questId })
     if (appliedPromo) {
       await incrementPromoUsed(appliedPromo.id)
@@ -118,12 +138,14 @@ router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), asy
     if (event.name === 'payment_intent.succeeded') {
       const { userId, questId, promoCode } = event.data?.object?.metadata || {}
       if (userId && questId) {
+        const paidAmount = event.data?.object?.amount || 0
+        const paidQuest = await findQuestById(questId)
         await addPurchasedQuest(userId, questId)
+        if (paidQuest) await recordPartnerEarning(paidQuest, userId, paidAmount)
         broadcast('purchase', { message: 'Новая оплата квеста', questId })
         if (promoCode) {
           await incrementPromoUsedByCode(promoCode)
           const promo = await findPromoByCode(promoCode)
-          const paidAmount = event.data?.object?.amount || 0
           const commission = calcCommission(promo, paidAmount)
           if (commission > 0) await addPromoEarnings(promoCode, commission)
           broadcast('promo', { message: `Промокод ${promoCode} использован`, code: promoCode })

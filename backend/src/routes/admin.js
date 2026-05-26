@@ -299,4 +299,121 @@ router.delete('/events/:id', async (req, res) => {
   } catch { res.status(500).json({ error: 'Server error' }) }
 })
 
+// ── Partner management ──────────────────────────────────────────
+router.get('/partners', async (_, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.id, u.email, u.display_name, u.created_at,
+             pp.business_name, pp.payout_percent, pp.payout_details,
+             (SELECT COUNT(*)::int FROM partner_earnings WHERE partner_id = u.id) AS total_sales,
+             (SELECT COALESCE(SUM(amount),0)::numeric FROM partner_earnings WHERE partner_id = u.id) AS total_earned,
+             (SELECT COALESCE(SUM(amount),0)::numeric FROM partner_earnings WHERE partner_id = u.id AND paid_out = false) AS unpaid_amount
+      FROM users u
+      LEFT JOIN partner_profiles pp ON pp.user_id = u.id
+      WHERE u.role = 'partner'
+      ORDER BY u.created_at DESC
+    `)
+    res.json(rows.map(r => ({
+      id: r.id, email: r.email, displayName: r.display_name,
+      businessName: r.business_name, payoutPercent: r.payout_percent ?? 70,
+      payoutDetails: r.payout_details,
+      totalSales: r.total_sales, totalEarned: parseFloat(r.total_earned),
+      unpaidAmount: parseFloat(r.unpaid_amount),
+      createdAt: r.created_at,
+    })))
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Add partner (by email)
+router.post('/partners', async (req, res) => {
+  try {
+    const { email, payoutPercent = 70, businessName = '' } = req.body
+    if (!email) return res.status(400).json({ error: 'email required' })
+    const { rows: uRows } = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()])
+    if (!uRows.length) return res.status(404).json({ error: 'Пользователь не найден' })
+    const userId = uRows[0].id
+    await pool.query("UPDATE users SET role = 'partner' WHERE id = $1", [userId])
+    await pool.query(
+      'INSERT INTO partner_profiles (user_id, business_name, payout_percent) VALUES ($1,$2,$3) ON CONFLICT (user_id) DO UPDATE SET business_name=$2, payout_percent=$3',
+      [userId, businessName, payoutPercent]
+    )
+    const { rows } = await pool.query(`
+      SELECT u.id, u.email, u.display_name, u.created_at,
+             pp.business_name, pp.payout_percent, pp.payout_details
+      FROM users u LEFT JOIN partner_profiles pp ON pp.user_id = u.id
+      WHERE u.id = $1`, [userId])
+    const r = rows[0]
+    res.json({
+      id: r.id, email: r.email, displayName: r.display_name,
+      businessName: r.business_name, payoutPercent: r.payout_percent ?? 70,
+      payoutDetails: r.payout_details, totalSales: 0, totalEarned: 0, unpaidAmount: 0,
+      createdAt: r.created_at,
+    })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Update partner profile
+router.patch('/partners/:userId', async (req, res) => {
+  try {
+    const { payoutPercent, businessName, payoutDetails } = req.body
+    const sets = []
+    const vals = [req.params.userId]
+    if (payoutPercent !== undefined) { sets.push(`payout_percent = $${vals.length+1}`); vals.push(payoutPercent) }
+    if (businessName !== undefined) { sets.push(`business_name = $${vals.length+1}`); vals.push(businessName) }
+    if (payoutDetails !== undefined) { sets.push(`payout_details = $${vals.length+1}`); vals.push(payoutDetails) }
+    if (sets.length) {
+      await pool.query(
+        `INSERT INTO partner_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO UPDATE SET ${sets.join(', ')}`,
+        vals
+      )
+    }
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Remove partner role
+router.delete('/partners/:userId', async (req, res) => {
+  try {
+    await pool.query("UPDATE users SET role = 'user' WHERE id = $1", [req.params.userId])
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Partner earnings list (admin view)
+router.get('/partners/:userId/earnings', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT pe.id, pe.amount, pe.total_price, pe.paid_out, pe.created_at,
+             q.title AS quest_title, u.email AS buyer_email
+      FROM partner_earnings pe
+      LEFT JOIN quests q ON q.id = pe.quest_id
+      LEFT JOIN users u ON u.id = pe.buyer_id
+      WHERE pe.partner_id = $1
+      ORDER BY pe.created_at DESC
+    `, [req.params.userId])
+    res.json(rows)
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Mark earnings as paid out
+router.post('/partners/:userId/payout', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'UPDATE partner_earnings SET paid_out = true WHERE partner_id = $1 AND paid_out = false RETURNING amount',
+      [req.params.userId]
+    )
+    const total = rows.reduce((s, r) => s + parseFloat(r.amount), 0)
+    res.json({ ok: true, paid: total })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+// Publish/unpublish partner quest (admin approval)
+router.patch('/partners/quests/:questId/status', async (req, res) => {
+  try {
+    const { status } = req.body
+    await pool.query('UPDATE quests SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.questId])
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 export default router

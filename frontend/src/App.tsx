@@ -23,10 +23,16 @@ import Reviews from './pages/Reviews'
 import Contacts from './pages/Contacts'
 import QuestPay from './pages/QuestPay'
 import Payment from './pages/Payment'
+import PartnerDashboard from './pages/partner/PartnerDashboard'
+import PartnerQuests from './pages/partner/PartnerQuests'
+import PartnerQuestEdit from './pages/partner/PartnerQuestEdit'
+import PartnerEarnings from './pages/partner/PartnerEarnings'
+import AdminPartners from './pages/admin/AdminPartners'
 import { AuthProvider } from './context/AuthContext'
 import { AdminNotifProvider } from './context/AdminNotifContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import PartnerRoute from './components/PartnerRoute'
 
 export default function App() {
   return (
@@ -89,6 +95,21 @@ export default function App() {
           } />
           <Route path="/admin/events" element={
             <AdminRoute><AdminEvents /></AdminRoute>
+          } />
+          <Route path="/admin/partners" element={
+            <AdminRoute><AdminPartners /></AdminRoute>
+          } />
+          <Route path="/partner" element={
+            <PartnerRoute><PartnerDashboard /></PartnerRoute>
+          } />
+          <Route path="/partner/quests" element={
+            <PartnerRoute><PartnerQuests /></PartnerRoute>
+          } />
+          <Route path="/partner/quests/:id" element={
+            <PartnerRoute><PartnerQuestEdit /></PartnerRoute>
+          } />
+          <Route path="/partner/earnings" element={
+            <PartnerRoute><PartnerEarnings /></PartnerRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -1,65 +1,36 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Onboarding from '../components/Onboarding'
 
-// Google Translate lang codes
 const LANGS = [
-  { code: 'ru', gtCode: null,    label: 'Русский язык', flag: '🇷🇺' },
-  { code: 'en', gtCode: 'en',    label: 'English',      flag: '🇬🇧' },
-  { code: 'zh', gtCode: 'zh-CN', label: '中文',          flag: '🇨🇳' },
+  { code: 'ru', label: 'Русский язык', flag: '🇷🇺' },
+  { code: 'en', label: 'English',      flag: '🇬🇧' },
+  { code: 'zh', label: '中文',          flag: '🇨🇳' },
 ]
-
-function setGoogleTranslate(gtCode: string | null) {
-  const domain = window.location.hostname
-  if (!gtCode || gtCode === 'ru') {
-    // Clear translation
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain}`
-  } else {
-    document.cookie = `/ru/${gtCode}; path=/; domain=${domain}`
-    document.cookie = `googtrans=/ru/${gtCode}; path=/`
-    document.cookie = `googtrans=/ru/${gtCode}; path=/; domain=.${domain}`
-    // Also try triggering the widget select if loaded
-    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null
-    if (select) {
-      select.value = gtCode
-      select.dispatchEvent(new Event('change'))
-    }
-  }
-}
 
 export default function LangSelect() {
   const navigate = useNavigate()
+  const { i18n } = useTranslation()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [pending, setPending] = useState<string | null>(null)
 
   function pick(lang: typeof LANGS[0]) {
     setPending(lang.code)
     localStorage.setItem('lang', lang.code)
-    setGoogleTranslate(lang.gtCode)
+    i18n.changeLanguage(lang.code)
 
     if (!localStorage.getItem('onboarded')) {
       setShowOnboarding(true)
       setPending(null)
     } else {
-      // Reload so Google Translate activates on the new page
-      if (lang.gtCode) {
-        window.location.href = '/city'
-      } else {
-        navigate('/city')
-      }
+      navigate('/city')
     }
   }
 
   function doneOnboarding() {
     localStorage.setItem('onboarded', '1')
-    const lang = localStorage.getItem('lang') || 'ru'
-    const l = LANGS.find(x => x.code === lang)
-    if (l?.gtCode) {
-      window.location.href = '/city'
-    } else {
-      navigate('/city')
-    }
+    navigate('/city')
   }
 
   if (showOnboarding) return <Onboarding onDone={doneOnboarding} />

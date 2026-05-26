@@ -5,7 +5,7 @@ import { supabase } from '../supabase'
 interface User {
   id: string
   email: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'partner'
   purchasedQuests: string[]
   displayName: string | null
   avatarColor: string

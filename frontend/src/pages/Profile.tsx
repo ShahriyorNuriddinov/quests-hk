@@ -117,8 +117,12 @@ export default function Profile() {
                 </div>
               )}
               <p className="text-xs text-gray-400 mt-0.5 truncate">{user.email}</p>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium inline-block mt-1 ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                {user.role === 'admin' ? 'Администратор' : 'Пользователь'}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium inline-block mt-1 ${
+                user.role === 'admin' ? 'bg-purple-100 text-purple-700'
+                : user.role === 'partner' ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-gray-100 text-gray-600'
+              }`}>
+                {user.role === 'admin' ? 'Администратор' : user.role === 'partner' ? 'Партнёр' : 'Пользователь'}
               </span>
             </div>
           </div>
@@ -197,6 +201,17 @@ export default function Profile() {
               className="w-full px-5 py-4 text-left text-sm font-medium text-purple-600 hover:bg-gray-50 transition-colors"
             >
               ⚙️ Панель администратора →
+            </button>
+          </div>
+        )}
+
+        {user.role === 'partner' && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <button
+              onClick={() => navigate('/partner')}
+              className="w-full px-5 py-4 text-left text-sm font-medium text-yellow-600 hover:bg-gray-50 transition-colors"
+            >
+              🗺️ Партнёрская панель →
             </button>
           </div>
         )}
