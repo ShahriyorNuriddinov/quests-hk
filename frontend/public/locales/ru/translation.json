@@ -14,8 +14,12 @@
   },
   "nav": {
     "quests": "Квесты",
+    "my": "Мои",
     "myQuests": "Мои квесты",
-    "profile": "Профиль"
+    "reviews": "Отзывы",
+    "faq": "FAQ",
+    "profile": "Профиль",
+    "contacts": "Контакты"
   },
   "quest": {
     "about": "Что вас ждёт?",

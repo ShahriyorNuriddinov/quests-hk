@@ -1,16 +1,18 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Map, Bookmark, Star, HelpCircle, User } from 'lucide-react'
-
-const items = [
-  { to: '/quests',    Icon: Map,      label: 'Квесты'  },
-  { to: '/my-quests', Icon: Bookmark, label: 'Мои'     },
-  { to: '/reviews',   Icon: Star,     label: 'Отзывы'  },
-  { to: '/faq',       Icon: HelpCircle, label: 'FAQ'   },
-  { to: '/profile',   Icon: User,     label: 'Профиль' },
-]
+import { useTranslation } from 'react-i18next'
 
 export default function BottomNav() {
   const { pathname } = useLocation()
+  const { t } = useTranslation()
+
+  const items = [
+    { to: '/quests',    Icon: Map,        label: t('nav.quests')  },
+    { to: '/my-quests', Icon: Bookmark,   label: t('nav.my')      },
+    { to: '/reviews',   Icon: Star,       label: t('nav.reviews') },
+    { to: '/faq',       Icon: HelpCircle, label: 'FAQ'            },
+    { to: '/profile',   Icon: User,       label: t('nav.profile') },
+  ]
 
   return (
     <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50 px-4 pointer-events-none">

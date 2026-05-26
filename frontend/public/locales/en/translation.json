@@ -14,8 +14,12 @@
   },
   "nav": {
     "quests": "Quests",
+    "my": "Mine",
     "myQuests": "My Quests",
-    "profile": "Profile"
+    "reviews": "Reviews",
+    "faq": "FAQ",
+    "profile": "Profile",
+    "contacts": "Contacts"
   },
   "quest": {
     "about": "What awaits you?",

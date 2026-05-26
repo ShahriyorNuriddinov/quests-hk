@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import api from '../api/client'
-import { MapPin, Lightbulb, Camera, BookOpen, History, Sparkles } from 'lucide-react'
+import { MapPin, Lightbulb, Camera, BookOpen, History, Sparkles, Images } from 'lucide-react'
+import { GalleryStrip } from '../components/ImageLightbox'
 
 interface Step {
   _id: string
@@ -340,11 +341,12 @@ export default function QuestPlay() {
             </a>
           )}
           {step.images && step.images.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {step.images.map((img, idx) => (
-                <img key={idx} src={img} alt={`Фото ${idx + 1}`}
-                  className="w-28 h-20 rounded-xl object-cover flex-shrink-0" />
-              ))}
+            <div className="mb-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Images size={13} className="text-gray-400" />
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Как добраться — фото</p>
+              </div>
+              <GalleryStrip photos={step.images} />
             </div>
           )}
         </div>
@@ -398,6 +400,16 @@ export default function QuestPlay() {
                 <span className="text-sm font-bold text-gray-700">Интересные факты</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{step.facts}</p>
+            </div>
+          )}
+
+          {step.images && step.images.length > 0 && (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Images size={16} className="text-gray-400" />
+                <span className="text-sm font-bold text-gray-700">Фотографии</span>
+              </div>
+              <GalleryStrip photos={step.images} />
             </div>
           )}
         </div>

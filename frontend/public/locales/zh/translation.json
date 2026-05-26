@@ -14,8 +14,12 @@
   },
   "nav": {
     "quests": "探索",
+    "my": "我的",
     "myQuests": "我的探索",
-    "profile": "个人"
+    "reviews": "评价",
+    "faq": "常见问题",
+    "profile": "个人",
+    "contacts": "联系"
   },
   "quest": {
     "about": "等待您的是？",

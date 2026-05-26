@@ -102,6 +102,76 @@ export default function ImageLightbox({ images, startIndex = 0, trigger }: Props
   )
 }
 
+// Horizontal scroll gallery with lightbox — for quest/step image galleries
+export function GalleryStrip({ photos, className = '' }: { photos: string[]; className?: string }) {
+  const [open, setOpen] = useState(false)
+  const [idx, setIdx] = useState(0)
+
+  if (!photos.length) return null
+
+  return (
+    <>
+      <div className={`flex gap-2 overflow-x-auto no-scrollbar ${className}`}>
+        {photos.map((src, i) => (
+          <button
+            key={i}
+            onClick={() => { setIdx(i); setOpen(true) }}
+            className="flex-shrink-0 w-36 h-28 rounded-2xl overflow-hidden active:opacity-80 transition-opacity"
+          >
+            <img src={src} alt="" className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
+
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/90 z-[100]" />
+          <Dialog.Content
+            className="fixed inset-0 z-[101] flex items-center justify-center p-4 focus:outline-none"
+            onClick={() => setOpen(false)}
+          >
+            <Dialog.Close className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors z-10" onClick={e => e.stopPropagation()}>
+              <X size={18} className="text-white" />
+            </Dialog.Close>
+            {photos.length > 1 && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                {idx + 1} / {photos.length}
+              </div>
+            )}
+            <img
+              src={photos[idx]}
+              alt=""
+              className="max-w-full max-h-full object-contain rounded-xl select-none"
+              style={{ maxHeight: 'calc(100vh - 80px)' }}
+              onClick={e => e.stopPropagation()}
+            />
+            {photos.length > 1 && (
+              <>
+                <button onClick={e => { e.stopPropagation(); setIdx(i => (i - 1 + photos.length) % photos.length) }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors">
+                  <ChevronLeft size={22} className="text-white" />
+                </button>
+                <button onClick={e => { e.stopPropagation(); setIdx(i => (i + 1) % photos.length) }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors">
+                  <ChevronRight size={22} className="text-white" />
+                </button>
+              </>
+            )}
+            {photos.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {photos.map((_, i) => (
+                  <button key={i} onClick={e => { e.stopPropagation(); setIdx(i) }}
+                    className={`h-1.5 rounded-full transition-all ${i === idx ? 'bg-white w-4' : 'bg-white/40 w-1.5'}`} />
+                ))}
+              </div>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
+  )
+}
+
 // Convenience component for a grid of photos
 export function PhotoGrid({ photos, className = '' }: { photos: string[]; className?: string }) {
   const [open, setOpen] = useState(false)

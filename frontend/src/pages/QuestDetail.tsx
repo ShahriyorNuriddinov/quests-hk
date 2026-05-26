@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { Clock, Route, Gauge, MapPin, HelpCircle, Wallet, Rocket, Flag, Users, Star, BookOpen, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { PhotoGrid } from '../components/ImageLightbox'
+import { PhotoGrid, GalleryStrip } from '../components/ImageLightbox'
 
 interface Review {
   id: string; rating: number; text: string; photos: string[]; createdAt: string
@@ -76,6 +77,7 @@ export default function QuestDetail() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user, refreshUser } = useAuth()
+  const { t } = useTranslation()
   const [quest, setQuest] = useState<Quest | null>(null)
   const [loading, setLoading] = useState(true)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -154,14 +156,8 @@ export default function QuestDetail() {
         {/* Gallery */}
         {quest.galleryImages && quest.galleryImages.length > 0 && (
           <div className="mt-5">
-            <h2 className="text-base font-extrabold mb-3 text-gray-900">Что вас ждёт</h2>
-            <div className="grid grid-cols-3 gap-1.5 rounded-2xl overflow-hidden">
-              {quest.galleryImages.slice(0, 6).map((img, i) => (
-                <div key={i} className="aspect-square bg-gray-100 overflow-hidden">
-                  <img src={img} alt={`Фото ${i + 1}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
+            <h2 className="text-base font-extrabold mb-3 text-gray-900">{t('quest.about')}</h2>
+            <GalleryStrip photos={quest.galleryImages} className="-mx-4 px-4" />
           </div>
         )}
 
@@ -244,12 +240,12 @@ export default function QuestDetail() {
           {purchased ? (
             <button onClick={() => navigate(`/quest/${id}/play`)}
               className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-              Начать квест →
+              {t('quest.play')} →
             </button>
           ) : (
             <button onClick={() => { if (!user) { navigate(`/auth?from=/quest/${id}/pay`); return } navigate(`/quest/${id}/pay`) }}
               className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-              Купить — {quest.price} {quest.currency}
+              {t('quest.buy')} — {quest.price} {quest.currency}
             </button>
           )}
         </div>

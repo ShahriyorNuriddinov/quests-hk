@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Clock, MapPin, Star, Search, X, SortAsc, Bell } from 'lucide-react'
+import { Clock, MapPin, Star, Search, X, SortAsc, Bell, ChevronDown } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
@@ -45,6 +45,7 @@ export default function QuestList() {
   const [notifyDone, setNotifyDone] = useState<string | null>(null)
   const [notifySending, setNotifySending] = useState(false)
   const [events, setEvents] = useState<AppEvent[]>([])
+  const [cityPickerOpen, setCityPickerOpen] = useState(false)
 
   useEffect(() => {
     api.get('/events').then(r => setEvents(r.data)).catch(() => {})
@@ -99,10 +100,41 @@ export default function QuestList() {
       <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-gray-100">
         <h1 className="text-xl font-extrabold tracking-tight">Квест-Экскурсии</h1>
         <div className="flex items-center gap-2">
-          <Link to="/reviews" className="flex items-center gap-1 text-xs text-gray-400">
-            <Star size={12} fill="#FFD600" strokeWidth={0} />
-            Отзывы
-          </Link>
+          {/* City selector */}
+          <div className="relative">
+            <button
+              onClick={() => setCityPickerOpen(o => !o)}
+              className="flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <span>{cities.find(c => c.code === city)?.flag || '🌍'}</span>
+              <span className="text-xs">{cities.find(c => c.code === city)?.name || city.toUpperCase()}</span>
+              <ChevronDown size={11} className="text-gray-400" />
+            </button>
+            {cityPickerOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setCityPickerOpen(false)} />
+                <div className="absolute right-0 top-10 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-w-[160px]">
+                  {cities.map(c => (
+                    <button
+                      key={c.code}
+                      onClick={() => {
+                        if (c.active) { setCity(c.code); localStorage.setItem('city', c.code) }
+                        setCityPickerOpen(false)
+                      }}
+                      disabled={!c.active}
+                      className={`w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-left transition-colors ${
+                        c.code === city ? 'bg-[#FFD600]/20 text-black' : c.active ? 'hover:bg-gray-50 text-gray-700' : 'text-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="text-base">{c.flag}</span>
+                      <span className="flex-1">{c.name}</span>
+                      {!c.active && <span className="text-[10px] text-gray-300">скоро</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <LangSwitcher />
         </div>
       </div>

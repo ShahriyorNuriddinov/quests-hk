@@ -1,40 +1,21 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const LANGS = [
-  { code: 'ru', gtCode: null,    flag: '🇷🇺', label: 'RU' },
-  { code: 'en', gtCode: 'en',    flag: '🇬🇧', label: 'EN' },
-  { code: 'zh', gtCode: 'zh-CN', flag: '🇨🇳', label: '中文' },
+  { code: 'ru', flag: '🇷🇺', label: 'RU' },
+  { code: 'en', flag: '🇬🇧', label: 'EN' },
+  { code: 'zh', flag: '🇨🇳', label: '中文' },
 ]
-
-function setGoogleTranslate(gtCode: string | null) {
-  const domain = window.location.hostname
-  if (!gtCode) {
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain}`
-  } else {
-    document.cookie = `googtrans=/ru/${gtCode}; path=/`
-    document.cookie = `googtrans=/ru/${gtCode}; path=/; domain=.${domain}`
-    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null
-    if (select) { select.value = gtCode; select.dispatchEvent(new Event('change')) }
-  }
-}
-
-function currentLang() {
-  const saved = localStorage.getItem('lang') || 'ru'
-  return LANGS.find(l => l.code === saved) || LANGS[0]
-}
 
 export default function LangSwitcher() {
   const [open, setOpen] = useState(false)
-  const cur = currentLang()
+  const { i18n } = useTranslation()
+  const cur = LANGS.find(l => l.code === i18n.language) || LANGS[0]
 
   function pick(lang: typeof LANGS[0]) {
+    i18n.changeLanguage(lang.code)
     localStorage.setItem('lang', lang.code)
-    setGoogleTranslate(lang.gtCode)
     setOpen(false)
-    if (lang.gtCode !== cur.gtCode) {
-      window.location.reload()
-    }
   }
 
   return (

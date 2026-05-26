@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Check, X } from 'lucide-react'
+import { Pencil, Check, X, Building2, CreditCard, Mail } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
@@ -200,6 +200,31 @@ export default function Profile() {
             </button>
           </div>
         )}
+
+        {/* Legal / contacts */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-50 flex items-start gap-3">
+            <Building2 size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-gray-800">DENIS IVANOV LIMITED</p>
+              <p className="text-xs text-gray-400 mt-0.5">Reg. No. 79643900 · Hong Kong</p>
+            </div>
+          </div>
+          <div className="px-5 py-4 border-b border-gray-50 flex items-start gap-3">
+            <CreditCard size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Visa · Mastercard · Alipay · WeChat Pay · Alipay HK<br />
+              <span className="text-gray-400">SSL + 3D Secure · Airwallex</span>
+            </p>
+          </div>
+          <a
+            href="mailto:Info@questshk.com"
+            className="px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+          >
+            <Mail size={16} className="text-gray-400 flex-shrink-0" />
+            <span className="text-sm font-medium text-[#B8A000]">Info@questshk.com →</span>
+          </a>
+        </div>
 
         <button
           onClick={handleLogout}
