@@ -24,12 +24,14 @@ import Contacts from './pages/Contacts'
 import QuestPay from './pages/QuestPay'
 import Payment from './pages/Payment'
 import { AuthProvider } from './context/AuthContext'
+import { AdminNotifProvider } from './context/AdminNotifContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 
 export default function App() {
   return (
     <AuthProvider>
+      <AdminNotifProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LangSelect />} />
@@ -91,6 +93,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
+      </AdminNotifProvider>
     </AuthProvider>
   )
 }
