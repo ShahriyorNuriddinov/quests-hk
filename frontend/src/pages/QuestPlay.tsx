@@ -118,8 +118,9 @@ export default function QuestPlay() {
     setRevealed(false)
     if (current + 1 >= steps.length) {
       elapsedRef.current = Date.now() - startTimeRef.current
-      api.post(`/quests/${id}/complete`).catch(() => {})
-      api.post('/users/achievements/check').catch(() => {})
+      api.post(`/quests/${id}/complete`)
+        .then(() => api.post('/users/achievements/check'))
+        .catch(() => {})
       setShowAchievement(true)
     } else {
       const n = current + 1

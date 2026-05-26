@@ -27,7 +27,9 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return }
-    api.get('/users/achievements').then(r => setAchievements(r.data)).catch(() => {})
+    api.get('/users/achievements')
+      .then(r => setAchievements(r.data))
+      .catch(e => console.error('[achievements]', e?.response?.status, e?.response?.data))
   }, [user])
 
   function handleLogout() {
