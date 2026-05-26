@@ -212,7 +212,7 @@ router.delete('/cities/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-router.get('/events', (req, res) => {
+router.get('/stream', (req, res) => {
   if (req.socket) req.socket.setNoDelay(true)
   res.set({
     'Content-Type': 'text/event-stream',

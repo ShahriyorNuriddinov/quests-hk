@@ -57,7 +57,7 @@ export function AdminNotifProvider({ children }: { children: ReactNode }) {
     if (!token) return
 
     const base = (import.meta.env.VITE_API_URL as string | undefined) || '/api'
-    const url = `${base}/admin/events?token=${encodeURIComponent(token)}`
+    const url = `${base}/admin/stream?token=${encodeURIComponent(token)}`
     console.log('[SSE] connecting to', url)
 
     let es: EventSource
