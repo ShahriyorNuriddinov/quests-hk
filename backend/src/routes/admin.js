@@ -441,4 +441,60 @@ router.patch('/partners/quests/:questId/status', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+// ── Achievements CRUD ───────────────────────────────────────────
+function toAchievement(r) {
+  return {
+    code: r.code, title: r.title, emoji: r.emoji,
+    description: r.description, conditionType: r.condition_type,
+    conditionValue: r.condition_value, active: r.active, sortOrder: r.sort_order,
+  }
+}
+
+router.get('/achievements', async (_, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM achievements ORDER BY sort_order ASC')
+    res.json(rows.map(toAchievement))
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.post('/achievements', async (req, res) => {
+  try {
+    const { code, title, emoji = '🏆', description = '', conditionType = 'completed_gte', conditionValue = 1, sortOrder = 0 } = req.body
+    if (!code || !title) return res.status(400).json({ error: 'code and title required' })
+    const { rows } = await pool.query(
+      `INSERT INTO achievements (code, title, emoji, description, condition_type, condition_value, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [code.toLowerCase().replace(/\s+/g, '_'), title, emoji, description, conditionType, conditionValue || null, sortOrder]
+    )
+    res.status(201).json(toAchievement(rows[0]))
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Code already exists' })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.patch('/achievements/:code', async (req, res) => {
+  try {
+    const { title, emoji, description, conditionType, conditionValue, active, sortOrder } = req.body
+    const colMap = { title, emoji, description, condition_type: conditionType, condition_value: conditionValue, active, sort_order: sortOrder }
+    const sets = []; const vals = [req.params.code]
+    for (const [col, val] of Object.entries(colMap)) {
+      if (val !== undefined) { sets.push(`${col} = $${vals.length + 1}`); vals.push(val) }
+    }
+    if (!sets.length) return res.json({ ok: true })
+    const { rows } = await pool.query(
+      `UPDATE achievements SET ${sets.join(', ')} WHERE code = $1 RETURNING *`, vals
+    )
+    if (!rows.length) return res.status(404).json({ error: 'Not found' })
+    res.json(toAchievement(rows[0]))
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.delete('/achievements/:code', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM achievements WHERE code = $1', [req.params.code])
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 export default router

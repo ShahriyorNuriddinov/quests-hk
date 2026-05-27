@@ -28,6 +28,7 @@ import PartnerQuests from './pages/partner/PartnerQuests'
 import PartnerQuestEdit from './pages/partner/PartnerQuestEdit'
 import PartnerEarnings from './pages/partner/PartnerEarnings'
 import AdminPartners from './pages/admin/AdminPartners'
+import AdminAchievements from './pages/admin/AdminAchievements'
 import { AuthProvider } from './context/AuthContext'
 import { AdminNotifProvider } from './context/AdminNotifContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -98,6 +99,9 @@ export default function App() {
           } />
           <Route path="/admin/partners" element={
             <AdminRoute><AdminPartners /></AdminRoute>
+          } />
+          <Route path="/admin/achievements" element={
+            <AdminRoute><AdminAchievements /></AdminRoute>
           } />
           <Route path="/partner" element={
             <PartnerRoute><PartnerDashboard /></PartnerRoute>

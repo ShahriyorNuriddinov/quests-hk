@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Send, X, TrendingUp, Users, MessageSquare, Tag, Map, ShoppingBag, Handshake } from 'lucide-react'
+import { Send, X, TrendingUp, Users, MessageSquare, Tag, Map, ShoppingBag, Handshake, Trophy } from 'lucide-react'
 import api from '../../api/client'
 import AdminNav from '../../components/AdminNav'
 
@@ -89,7 +89,8 @@ export default function AdminStats() {
     { icon: MessageSquare, label: 'Отзывы',           value: stats?.reviews,         accent: 'bg-orange-50', iconColor: 'text-orange-500', href: '/admin/reviews', sub: 'Просмотреть' },
     { icon: Tag,           label: 'Промо коды',       value: stats?.promoCodes,      accent: 'bg-pink-50',   iconColor: 'text-pink-500',   href: '/admin/promo',   sub: 'Управлять' },
     { icon: Map,           label: 'Квесты',           value: null,                   accent: 'bg-amber-50',  iconColor: 'text-amber-500',  href: '/admin/quests',   sub: 'Управлять' },
-    { icon: Handshake,     label: 'Партнёры',         value: null,                   accent: 'bg-teal-50',   iconColor: 'text-teal-500',   href: '/admin/partners', sub: 'Управлять' },
+    { icon: Handshake,     label: 'Партнёры',         value: null,                   accent: 'bg-teal-50',   iconColor: 'text-teal-500',   href: '/admin/partners',      sub: 'Управлять' },
+    { icon: Trophy,        label: 'Достижения',       value: null,                   accent: 'bg-yellow-50', iconColor: 'text-yellow-500', href: '/admin/achievements',  sub: 'Управлять' },
   ]
 
   return (

@@ -185,6 +185,29 @@ export async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Achievements catalogue (admin-managed)
+    CREATE TABLE IF NOT EXISTS achievements (
+      code TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      emoji TEXT NOT NULL DEFAULT '🏆',
+      description TEXT NOT NULL DEFAULT '',
+      condition_type TEXT NOT NULL DEFAULT 'completed_gte',
+      condition_value INTEGER DEFAULT 1,
+      active BOOLEAN NOT NULL DEFAULT true,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    INSERT INTO achievements (code, title, emoji, description, condition_type, condition_value, sort_order)
+    VALUES
+      ('first_quest',  'Первооткрыватель', '🗺️', 'Завершил первый квест',   'completed_gte', 1, 0),
+      ('three_quests', 'Путешественник',   '✈️',  'Завершил 3 квеста',       'completed_gte', 3, 1),
+      ('five_quests',  'Знаток',           '🏆',  'Завершил 5 квестов',      'completed_gte', 5, 2),
+      ('photo_master', 'Фотограф',         '📸',  'Загрузил фото в квесте',  'has_photo',     NULL, 3),
+      ('reviewer',     'Критик',           '⭐',  'Оставил отзыв',           'has_review',    NULL, 4),
+      ('buyer',        'Коллекционер',     '💎',  'Купил 3+ квеста',         'purchased_gte', 3, 5)
+    ON CONFLICT (code) DO NOTHING;
+
     CREATE INDEX IF NOT EXISTS idx_quests_status ON quests(status);
     CREATE INDEX IF NOT EXISTS idx_reviews_quest_id ON reviews(quest_id);
     CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(quest_id, approved);
