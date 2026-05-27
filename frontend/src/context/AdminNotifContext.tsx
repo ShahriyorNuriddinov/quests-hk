@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 
 export interface AdminNotif {
   id: number
-  type: 'review' | 'purchase' | 'promo'
+  type: 'review' | 'purchase' | 'promo' | 'quest_pending'
   message: string
   ts: number
   read: boolean
@@ -23,7 +23,7 @@ const Ctx = createContext<AdminNotifCtx>({
 
 export function useAdminNotif() { return useContext(Ctx) }
 
-const ICONS: Record<string, string> = { review: '⭐', purchase: '💰', promo: '🎟️' }
+const ICONS: Record<string, string> = { review: '⭐', purchase: '💰', promo: '🎟️', quest_pending: '📋' }
 
 function NotifToast({ notif, onDismiss }: { notif: AdminNotif; onDismiss: () => void }) {
   return (

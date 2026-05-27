@@ -4,6 +4,7 @@ import { requireAuth, requirePartner } from '../middleware/auth.js'
 import { findQuestById, createQuest, updateQuest, deleteQuest } from '../models/Quest.js'
 import { pool } from '../db.js'
 import { uploadFile } from '../storage.js'
+import { broadcast } from '../events.js'
 
 const router = Router()
 router.use(requireAuth, requirePartner)
@@ -94,6 +95,9 @@ router.patch('/quests/:id', async (req, res) => {
     const data = { ...req.body }
     if (req.user.role !== 'admin' && data.status === 'published') data.status = 'pending'
     const quest = await updateQuest(req.params.id, data)
+    if (data.status === 'pending') {
+      broadcast('quest_pending', { message: `Партнёр отправил квест на проверку: ${quest.title}`, questId: quest._id })
+    }
     res.json(quest)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
