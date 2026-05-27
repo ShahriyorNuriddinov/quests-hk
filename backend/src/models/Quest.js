@@ -43,8 +43,10 @@ export async function findAllQuests({ status, city, withSteps = false } = {}) {
       COALESCE(
         (SELECT AVG(rating) FROM reviews WHERE quest_id = q.id AND approved = true),
         q.rating
-      ) AS real_rating
+      ) AS real_rating,
+      u.email AS partner_email
     FROM quests q
+    LEFT JOIN users u ON u.id = q.partner_id
     ${where}
     ORDER BY q.created_at DESC
   `, params)
@@ -52,7 +54,10 @@ export async function findAllQuests({ status, city, withSteps = false } = {}) {
     const q = toQuest(r, withSteps)
     q.completedCount = r.real_completed
     q.rating = parseFloat(r.real_rating)
-    if (q.partnerId) q.freePromoLeft = Math.max(0, 25 - (r.real_completed || 0))
+    if (q.partnerId) {
+      q.freePromoLeft = Math.max(0, 25 - (r.real_completed || 0))
+      q.partnerEmail = r.partner_email || null
+    }
     return q
   })
 }

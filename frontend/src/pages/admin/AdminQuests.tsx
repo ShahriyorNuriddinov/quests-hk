@@ -14,6 +14,7 @@ interface Quest {
   completedCount: number
   status: 'published' | 'draft' | 'pending'
   partnerId?: string
+  partnerEmail?: string
 }
 
 export default function AdminQuests() {
@@ -140,6 +141,9 @@ function QuestCard({ q, onDelete, onApprove, onReject }: {
         </div>
 
         <h3 className="font-bold text-[15px] leading-snug text-gray-900">{q.title}</h3>
+        {q.partnerEmail && (
+          <p className="text-[11px] text-teal-600 font-semibold mt-0.5">🤝 {q.partnerEmail}</p>
+        )}
         <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">{q.description}</p>
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
