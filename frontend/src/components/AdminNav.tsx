@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BarChart2, Map, MessageSquare, Tag, Globe, Bell, Megaphone } from 'lucide-react'
-import { useState } from 'react'
+import { BarChart2, Map, MessageSquare, Tag, Globe, Bell, Megaphone, GripHorizontal } from 'lucide-react'
+import { useState, useRef, useCallback } from 'react'
 import { useAdminNotif } from '../context/AdminNotifContext'
 
 const navItems = [
@@ -20,10 +20,34 @@ export default function AdminNav() {
   const navigate = useNavigate()
   const { notifications, unread, markAllRead, clearAll } = useAdminNotif()
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const dragging = useRef(false)
+  const startRef = useRef({ mx: 0, my: 0, px: 0, py: 0 })
+
+  function onMouseDown(e: React.MouseEvent) {
+    dragging.current = true
+    startRef.current = { mx: e.clientX, my: e.clientY, px: pos.x, py: pos.y }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
+
+  function onMouseMove(e: MouseEvent) {
+    if (!dragging.current) return
+    setPos({
+      x: startRef.current.px + (e.clientX - startRef.current.mx),
+      y: startRef.current.py + (e.clientY - startRef.current.my),
+    })
+  }
+
+  function onMouseUp() {
+    dragging.current = false
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+  }
 
   function togglePanel() {
     setOpen(v => !v)
-    markAllRead()
+    if (!open) { setPos({ x: 0, y: 0 }); markAllRead() }
   }
 
   return (
@@ -32,9 +56,15 @@ export default function AdminNav() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed bottom-24 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 w-72 max-h-72 overflow-y-auto">
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white">
-              <p className="text-sm font-bold">Уведомления</p>
+          <div
+            className="fixed z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 w-72 max-h-72 overflow-y-auto"
+            style={{ bottom: `${96 - pos.y}px`, right: `${16 - pos.x}px` }}
+          >
+            <div onMouseDown={onMouseDown} className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white cursor-grab active:cursor-grabbing select-none">
+              <div className="flex items-center gap-2">
+                <GripHorizontal size={13} className="text-gray-300" />
+                <p className="text-sm font-bold">Уведомления</p>
+              </div>
               {notifications.length > 0 && (
                 <button onClick={clearAll} className="text-[10px] text-gray-400">Очистить</button>
               )}
