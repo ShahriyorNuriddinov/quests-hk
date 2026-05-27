@@ -53,7 +53,7 @@ export default function MyQuests() {
         ) : (
           <div className="flex flex-col gap-3">
             {quests.map(q => {
-              const pct = q.progress ? Math.round((q.progress.current / q.progress.total) * 100) : 0
+              const pct = q.progress && q.progress.total > 0 ? Math.round((q.progress.current / q.progress.total) * 100) : 0
               return (
                 <Link
                   key={q._id}

@@ -151,8 +151,10 @@ router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), asy
         if (promoCode) {
           await incrementPromoUsedByCode(promoCode)
           const promo = await findPromoByCode(promoCode)
-          const commission = calcCommission(promo, paidAmount)
-          if (commission > 0) await addPromoEarnings(promoCode, commission)
+          if (promo) {
+            const commission = calcCommission(promo, paidAmount)
+            if (commission > 0) await addPromoEarnings(promoCode, commission)
+          }
           broadcast('promo', { message: `Промокод ${promoCode} использован`, code: promoCode })
         }
       }
