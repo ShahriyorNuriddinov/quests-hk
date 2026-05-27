@@ -90,7 +90,6 @@ export default function QuestList() {
   }
 
   const filtered = quests
-    .filter(q => !user?.purchasedQuests.includes(q._id))
     .filter(q => !search || q.title.toLowerCase().includes(search.toLowerCase()) || q.description.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       if (sort === 'price_asc') return a.price - b.price
