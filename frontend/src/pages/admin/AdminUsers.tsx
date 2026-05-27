@@ -39,8 +39,9 @@ export default function AdminUsers() {
     api.get('/admin/users').then(r => setUsers(r.data)).finally(() => setLoading(false))
   }, [])
 
-  const admins = users.filter(u => u.role === 'admin')
-  const regular = users.filter(u => u.role !== 'admin')
+  const admins   = users.filter(u => u.role === 'admin')
+  const partners = users.filter(u => u.role === 'partner')
+  const regular  = users.filter(u => u.role === 'user')
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
@@ -104,6 +105,16 @@ export default function AdminUsers() {
             </div>
           )}
 
+          {/* Partners */}
+          {partners.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
+                Партнёры · {partners.length}
+              </p>
+              {partners.map(u => <UserCard key={u.id} u={u} />)}
+            </div>
+          )}
+
           {/* Regular users */}
           {regular.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -123,7 +134,6 @@ export default function AdminUsers() {
 }
 
 function UserCard({ u }: { u: User }) {
-  const isAdmin = u.role === 'admin'
   const date = new Date(u.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
@@ -137,7 +147,7 @@ function UserCard({ u }: { u: User }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-semibold text-gray-900 truncate">{u.email}</p>
-          {isAdmin && <Crown size={12} className="text-purple-500 flex-shrink-0" />}
+          {u.role === 'admin' && <Crown size={12} className="text-purple-500 flex-shrink-0" />}
         </div>
         <div className="flex items-center gap-3 mt-0.5">
           <span className="text-[11px] text-gray-400">{date}</span>
@@ -152,9 +162,11 @@ function UserCard({ u }: { u: User }) {
 
       {/* Role badge */}
       <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
-        isAdmin ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-400'
+        u.role === 'admin' ? 'bg-purple-50 text-purple-600'
+        : u.role === 'partner' ? 'bg-yellow-50 text-yellow-600'
+        : 'bg-gray-100 text-gray-400'
       }`}>
-        {isAdmin ? 'admin' : 'user'}
+        {u.role}
       </span>
     </div>
   )
