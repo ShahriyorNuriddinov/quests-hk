@@ -13,6 +13,8 @@ interface Quest {
   coverImage?: string
   duration?: string
   distance?: string
+  freePromoLeft?: number
+  partnerId?: string
 }
 
 interface PromoInfo {
@@ -102,8 +104,9 @@ export default function QuestPay() {
     </div>
   )
 
-  const finalPrice = calcFinal(quest.price, promoInfo)
-  const hasDiscount = promoInfo && finalPrice < quest.price
+  const isFreePartner = (quest.freePromoLeft ?? 0) > 0
+  const finalPrice = isFreePartner ? 0 : calcFinal(quest.price, promoInfo)
+  const hasDiscount = !isFreePartner && promoInfo && finalPrice < quest.price
 
   return (
     <div className="min-h-screen bg-gray-50 pb-36">
@@ -139,11 +142,11 @@ export default function QuestPay() {
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-gray-500">Стоимость квеста</span>
             <div className="flex items-center gap-2">
-              {hasDiscount && (
+              {(hasDiscount || isFreePartner) && (
                 <span className="text-sm text-gray-400 line-through">{quest.price} {quest.currency}</span>
               )}
-              <span className={`text-xl font-extrabold ${hasDiscount ? 'text-green-600' : 'text-gray-900'}`}>
-                {finalPrice} {quest.currency}
+              <span className={`text-xl font-extrabold ${(hasDiscount || isFreePartner) ? 'text-green-600' : 'text-gray-900'}`}>
+                {isFreePartner ? 'Бесплатно' : `${finalPrice} ${quest.currency}`}
               </span>
             </div>
           </div>
@@ -275,7 +278,9 @@ export default function QuestPay() {
           >
             {loading
               ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Обрабатываем...</>
-              : `Оплатить ${finalPrice} ${quest.currency}`
+              : isFreePartner
+                ? `🎁 Получить бесплатно`
+                : `Оплатить ${finalPrice} ${quest.currency}`
             }
           </button>
           <p className="text-center text-[11px] text-gray-400 mt-2.5 leading-relaxed">
