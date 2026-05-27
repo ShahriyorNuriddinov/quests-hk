@@ -35,7 +35,7 @@ export default function Cities() {
   function selectCity(city: City) {
     if (!city.active) return
     localStorage.setItem('city', city.code)
-    navigate(`/?city=${city.code}`)
+    navigate('/quests')
   }
 
   async function submitNotify() {
