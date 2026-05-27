@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Star } from 'lucide-react'
+import { Plus, Pencil, Trash2, Star, Check, X } from 'lucide-react'
 import api from '../../api/client'
 import AdminNav from '../../components/AdminNav'
 
@@ -12,7 +12,8 @@ interface Quest {
   price: number
   currency: string
   completedCount: number
-  status: 'published' | 'draft'
+  status: 'published' | 'draft' | 'pending'
+  partnerId?: string
 }
 
 export default function AdminQuests() {
@@ -29,8 +30,19 @@ export default function AdminQuests() {
     setQuests(q => q.filter(x => x._id !== id))
   }
 
+  async function approveQuest(id: string) {
+    await api.patch(`/admin/partners/quests/${id}/status`, { status: 'published' })
+    setQuests(q => q.map(x => x._id === id ? { ...x, status: 'published' } : x))
+  }
+
+  async function rejectQuest(id: string) {
+    await api.patch(`/admin/partners/quests/${id}/status`, { status: 'draft' })
+    setQuests(q => q.map(x => x._id === id ? { ...x, status: 'draft' } : x))
+  }
+
+  const pending   = quests.filter(q => q.status === 'pending')
   const published = quests.filter(q => q.status === 'published')
-  const drafts = quests.filter(q => q.status === 'draft')
+  const drafts    = quests.filter(q => q.status === 'draft')
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
@@ -65,6 +77,17 @@ export default function AdminQuests() {
           </div>
         ) : (
           <>
+            {pending.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-bold uppercase tracking-widest text-orange-400 px-1">
+                  На проверке · {pending.length}
+                </p>
+                {pending.map(q => (
+                  <QuestCard key={q._id} q={q} onDelete={deleteQuest}
+                    onApprove={approveQuest} onReject={rejectQuest} />
+                ))}
+              </div>
+            )}
             {published.length > 0 && (
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">
@@ -90,15 +113,22 @@ export default function AdminQuests() {
   )
 }
 
-function QuestCard({ q, onDelete }: { q: Quest; onDelete: (id: string) => void }) {
+function QuestCard({ q, onDelete, onApprove, onReject }: {
+  q: Quest
+  onDelete: (id: string) => void
+  onApprove?: (id: string) => void
+  onReject?: (id: string) => void
+}) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center gap-2 mb-2">
           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-            q.status === 'published' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'
+            q.status === 'published' ? 'bg-emerald-50 text-emerald-600'
+            : q.status === 'pending' ? 'bg-orange-50 text-orange-500'
+            : 'bg-gray-100 text-gray-400'
           }`}>
-            {q.status === 'published' ? 'Опубликован' : 'Черновик'}
+            {q.status === 'published' ? 'Опубликован' : q.status === 'pending' ? 'На проверке' : 'Черновик'}
           </span>
           <div className="flex items-center gap-1 ml-auto">
             <Star size={11} fill="#FFD600" strokeWidth={0} />
@@ -114,7 +144,19 @@ function QuestCard({ q, onDelete }: { q: Quest; onDelete: (id: string) => void }
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
           <span className="text-sm font-extrabold text-gray-900">{q.price} {q.currency}</span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {q.status === 'pending' && onApprove && onReject && (
+              <>
+                <button onClick={() => onApprove(q._id)}
+                  className="flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors">
+                  <Check size={11} /> Одобрить
+                </button>
+                <button onClick={() => onReject(q._id)}
+                  className="flex items-center gap-1 text-xs font-bold bg-red-50 text-red-500 px-3 py-1.5 rounded-xl hover:bg-red-100 transition-colors">
+                  <X size={11} /> Отклонить
+                </button>
+              </>
+            )}
             <Link to={`/admin/quests/${q._id}`}
               className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-xl hover:bg-gray-200 transition-colors">
               <Pencil size={11} /> Редактировать
