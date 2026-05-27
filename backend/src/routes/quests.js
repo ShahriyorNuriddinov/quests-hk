@@ -67,7 +67,15 @@ router.get('/:id/steps', requireAuth, async (req, res) => {
     const questId = req.params.id
     const hasPurchased = req.user.purchasedQuests.includes(questId)
     if (!hasPurchased && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Purchase required' })
+      // Allow partner to preview their own quest
+      if (req.user.role === 'partner') {
+        const check = await findQuestById(questId, false)
+        if (!check || check.partnerId !== req.user.id) {
+          return res.status(403).json({ error: 'Purchase required' })
+        }
+      } else {
+        return res.status(403).json({ error: 'Purchase required' })
+      }
     }
     const quest = await findQuestById(questId, true)
     if (!quest) return res.status(404).json({ error: 'Not found' })

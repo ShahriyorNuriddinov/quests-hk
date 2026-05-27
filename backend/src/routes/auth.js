@@ -20,7 +20,7 @@ router.post('/supabase-sync', async (req, res) => {
     const created = await upsertUserByEmail(sbUser.email)
     const user = await findUserById(created.id)
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '90d' })
-    res.json({ token, user: { id: user.id, email: user.email, role: user.role, purchasedQuests: user.purchasedQuests } })
+    res.json({ token, user: { id: user.id, email: user.email, role: user.role, purchasedQuests: user.purchasedQuests, displayName: user.displayName, avatarColor: user.avatarColor } })
   } catch (err) {
     console.error('supabase-sync error:', err)
     res.status(500).json({ error: 'Auth error' })

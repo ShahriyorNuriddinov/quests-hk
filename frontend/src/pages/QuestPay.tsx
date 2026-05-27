@@ -280,7 +280,7 @@ export default function QuestPay() {
           </button>
           <p className="text-center text-[11px] text-gray-400 mt-2.5 leading-relaxed">
             Нажимая «Оплатить», вы соглашаетесь с{' '}
-            <a href="/contacts" className="text-gray-500 underline">политикой конфиденциальности</a>
+            <a href="/faq" className="text-gray-500 underline">политикой конфиденциальности</a>
           </p>
         </div>
       </div>
