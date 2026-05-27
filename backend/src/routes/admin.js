@@ -148,8 +148,33 @@ router.get('/reviews', async (_, res) => {
 
 router.patch('/reviews/:id', async (req, res) => {
   const r = await updateReview(req.params.id, req.body)
+  // Auto-unpublish partner quest if avg rating drops below 4.0 after approval
+  if (req.body.approved && r?.quest?.id) {
+    checkPartnerQuestRating(r.quest.id).catch(() => {})
+  }
   res.json(r)
 })
+
+async function checkPartnerQuestRating(questId) {
+  const { rows } = await pool.query(
+    'SELECT AVG(rating)::float AS avg, COUNT(*)::int AS cnt FROM reviews WHERE quest_id = $1 AND approved = true',
+    [questId]
+  )
+  const { avg, cnt } = rows[0]
+  if (avg !== null && cnt >= 2 && avg < 4.0) {
+    const { rows: qr } = await pool.query(
+      "SELECT partner_id, status, title FROM quests WHERE id = $1", [questId]
+    )
+    if (qr[0]?.partner_id && qr[0]?.status === 'published') {
+      await pool.query(
+        "UPDATE quests SET status = 'pending', updated_at = NOW() WHERE id = $1", [questId]
+      )
+      broadcast('review', {
+        message: `⚠️ Квест «${qr[0].title}» снят с публикации (рейтинг ${avg.toFixed(1)} < 4.0)`
+      })
+    }
+  }
+}
 
 router.delete('/reviews/:id', async (req, res) => {
   await deleteReview(req.params.id)

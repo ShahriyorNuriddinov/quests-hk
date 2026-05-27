@@ -16,6 +16,7 @@ interface Quest {
   difficulty: string; price: number; currency: string; rating: number; completedCount: number
   reviewCount: number; locationsCount: number; questionsCount: number; transportCost: string
   startPoint: string; endPoint: string; coverImage?: string; galleryImages?: string[]
+  partnerId?: string; freePromoLeft?: number
 }
 
 function StarRow({ n, size = 12 }: { n: number; size?: number }) {
@@ -153,6 +154,19 @@ export default function QuestDetail() {
           )}
         </div>
 
+        {/* Free promo banner */}
+        {quest.freePromoLeft != null && quest.freePromoLeft > 0 && (
+          <div className="mt-4 bg-[#FFD600] rounded-2xl px-4 py-3.5 flex items-center gap-3">
+            <span className="text-2xl">🎁</span>
+            <div>
+              <p className="text-sm font-extrabold text-black leading-tight">Бесплатно для первых 25</p>
+              <p className="text-xs text-black/60 mt-0.5">
+                Осталось {quest.freePromoLeft} бесплатных мест — получите квест прямо сейчас
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Gallery */}
         {quest.galleryImages && quest.galleryImages.length > 0 && (
           <div className="mt-5">
@@ -245,7 +259,9 @@ export default function QuestDetail() {
           ) : (
             <button onClick={() => { if (!user) { navigate(`/auth?from=/quest/${id}/pay`); return } navigate(`/quest/${id}/pay`) }}
               className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base">
-              {t('quest.buy')} — {quest.price} {quest.currency}
+              {quest.freePromoLeft != null && quest.freePromoLeft > 0
+                ? `🎁 Получить бесплатно (ещё ${quest.freePromoLeft})`
+                : `${t('quest.buy')} — ${quest.price} ${quest.currency}`}
             </button>
           )}
         </div>

@@ -52,6 +52,7 @@ export async function findAllQuests({ status, city, withSteps = false } = {}) {
     const q = toQuest(r, withSteps)
     q.completedCount = r.real_completed
     q.rating = parseFloat(r.real_rating)
+    if (q.partnerId) q.freePromoLeft = Math.max(0, 25 - (r.real_completed || 0))
     return q
   })
 }
@@ -73,6 +74,7 @@ export async function findQuestById(id, withSteps = true) {
   quest.completedCount = rows[0].real_completed
   quest.rating = parseFloat(rows[0].real_rating)
   quest.reviewCount = rows[0].review_count
+  if (quest.partnerId) quest.freePromoLeft = Math.max(0, 25 - (rows[0].real_completed || 0))
   return quest
 }
 

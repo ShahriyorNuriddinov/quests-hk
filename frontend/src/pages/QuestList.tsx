@@ -19,6 +19,8 @@ interface Quest {
   rating: number
   completedCount: number
   coverImage?: string
+  partnerId?: string
+  freePromoLeft?: number
 }
 
 interface City {
@@ -254,9 +256,20 @@ export default function QuestList() {
                     {q.coverImage && (
                       <img src={q.coverImage} alt={q.title} className="w-full h-full object-cover" />
                     )}
-                    <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-sm">
-                      {q.price} {q.currency}
-                    </div>
+                    {q.freePromoLeft != null && q.freePromoLeft > 0 ? (
+                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+                        <div className="bg-[#FFD600] text-black text-xs font-extrabold px-3 py-1 rounded-full">
+                          БЕСПЛАТНО
+                        </div>
+                        <div className="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+                          ещё {q.freePromoLeft}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-3 py-1 rounded-full backdrop-blur-sm">
+                        {q.price} {q.currency}
+                      </div>
+                    )}
                   </div>
                 </Link>
 
@@ -306,7 +319,9 @@ export default function QuestList() {
                           onClick={() => handleBuy(q._id)}
                           className="flex-1 bg-[#FFD600] text-black text-sm font-bold rounded-2xl py-3"
                         >
-                          Купить {q.price} {q.currency}
+                          {q.freePromoLeft != null && q.freePromoLeft > 0
+                            ? 'Получить бесплатно'
+                            : `Купить ${q.price} ${q.currency}`}
                         </button>
                       </>
                     )}

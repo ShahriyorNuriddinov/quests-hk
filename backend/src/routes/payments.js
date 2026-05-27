@@ -74,6 +74,11 @@ router.post('/checkout', requireAuth, async (req, res) => {
   let amount = quest.price
   let appliedPromo = null
 
+  // Partner promo: first 25 buyers get the quest free
+  if (quest.partnerId && quest.completedCount < 25) {
+    amount = 0
+  }
+
   if (promoCode) {
     const promo = await findPromoByCode(promoCode, true)
     if (promo && promo.usedCount < promo.maxUses) {
