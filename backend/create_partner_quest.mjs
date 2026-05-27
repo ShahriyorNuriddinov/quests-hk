@@ -32,7 +32,7 @@ const quest = {
   difficulty: 'easy',
   price: 98,
   currency: 'HK$',
-  city: 'hong-kong',
+  city: 'hk',
   status: 'pending',
   locationsCount: 5,
   questionsCount: 4,

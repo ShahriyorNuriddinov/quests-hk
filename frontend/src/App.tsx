@@ -29,6 +29,7 @@ import PartnerQuestEdit from './pages/partner/PartnerQuestEdit'
 import PartnerEarnings from './pages/partner/PartnerEarnings'
 import AdminPartners from './pages/admin/AdminPartners'
 import AdminAchievements from './pages/admin/AdminAchievements'
+import Cities from './pages/Cities'
 import { AuthProvider } from './context/AuthContext'
 import { AdminNotifProvider } from './context/AdminNotifContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/city" element={<CitySelect />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/quests" element={<QuestList />} />
+          <Route path="/cities" element={<Cities />} />
           <Route path="/quest/:id" element={<QuestDetail />} />
           <Route path="/quest/:id/play" element={
             <ProtectedRoute><QuestPlay /></ProtectedRoute>

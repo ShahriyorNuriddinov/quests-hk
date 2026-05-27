@@ -11,13 +11,17 @@ interface City {
   flag: string
   active: boolean
   sortOrder: number
+  country: string | null
+  countryCode: string | null
+  coverImage: string | null
+  questCount: number
 }
 
 export default function AdminCities() {
   const [cities, setCities] = useState<City[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({ code: '', name: '', flag: '' })
+  const [form, setForm] = useState({ code: '', name: '', flag: '', country: '', coverImage: '' })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,10 +30,10 @@ export default function AdminCities() {
 
   async function create(e: React.FormEvent) {
     e.preventDefault()
-    const r = await api.post('/admin/cities', { ...form, active: false, sortOrder: cities.length })
+    const r = await api.post('/admin/cities', { ...form, active: false, sortOrder: cities.length, countryCode: form.country.toLowerCase().replace(/\s+/g, '-') })
     setCities(c => [...c, r.data])
     setCreating(false)
-    setForm({ code: '', name: '', flag: '' })
+    setForm({ code: '', name: '', flag: '', country: '', coverImage: '' })
   }
 
   async function toggle(id: string, active: boolean) {
@@ -102,6 +106,24 @@ export default function AdminCities() {
                 className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent"
               />
             </div>
+            <div className="px-4 py-3 border-b border-gray-50">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Страна / Регион</label>
+              <input
+                placeholder="Китай / Азия"
+                value={form.country}
+                onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
+                className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
+            <div className="px-4 py-3 border-b border-gray-50">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Фото города (URL)</label>
+              <input
+                placeholder="https://images.unsplash.com/..."
+                value={form.coverImage}
+                onChange={e => setForm(f => ({ ...f, coverImage: e.target.value }))}
+                className="mt-1 w-full text-sm text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
             <div className="px-4 py-4">
               <button type="submit"
                 className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-3 text-sm flex items-center justify-center gap-2">
@@ -132,10 +154,14 @@ export default function AdminCities() {
                   city.active ? 'border-gray-100' : 'border-gray-100 opacity-60'
                 }`}>
                 <div className="px-4 py-4 flex items-center gap-3">
-                  <span className="text-2xl">{city.flag || '🏙️'}</span>
+                  {city.coverImage
+                    ? <img src={city.coverImage} alt={city.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                    : <span className="text-2xl">{city.flag || '🏙️'}</span>
+                  }
                   <div className="flex-1">
                     <p className="font-extrabold text-base text-gray-900">{city.name}</p>
-                    <p className="text-xs text-gray-400 font-mono">{city.code}</p>
+                    <p className="text-xs text-gray-400 font-mono">{city.code} · {city.country || '—'}</p>
+                    {city.questCount > 0 && <p className="text-xs text-teal-500 font-semibold">{city.questCount} квест(а)</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     {/* Toggle */}

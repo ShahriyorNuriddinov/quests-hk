@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Clock, MapPin, Star, Search, X, SortAsc, Bell, ChevronDown } from 'lucide-react'
+import { Clock, MapPin, Star, Search, X, SortAsc, Bell, ChevronDown, Globe } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
@@ -145,7 +145,10 @@ export default function QuestList() {
       {/* City selector */}
       {cities.length > 0 && (
         <div className="px-4 pt-3 pb-1 max-w-lg mx-auto">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar items-center">
+            <Link to="/cities" className="flex-shrink-0 flex items-center gap-1 px-3 py-2 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold hover:bg-gray-200 transition-colors">
+              <Globe size={11} /> Все города
+            </Link>
             {cities.map(c => (
               <div key={c.code} className="flex-shrink-0 flex items-center gap-1.5">
                 <button
