@@ -116,9 +116,10 @@ export function GalleryStrip({ photos, className = '' }: { photos: string[]; cla
           <button
             key={i}
             onClick={() => { setIdx(i); setOpen(true) }}
-            className="flex-shrink-0 w-36 h-28 rounded-2xl overflow-hidden active:opacity-80 transition-opacity"
+            className="flex-shrink-0 w-36 h-28 rounded-2xl overflow-hidden active:opacity-80 transition-opacity bg-gray-100"
           >
-            <img src={src} alt="" className="w-full h-full object-cover" />
+            <img src={src} alt="" className="w-full h-full object-cover"
+              onError={e => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none' }} />
           </button>
         ))}
       </div>

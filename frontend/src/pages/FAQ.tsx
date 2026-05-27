@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, MessageCircle } from 'lucide-react'
+import { ChevronDown, MessageCircle, Shield, CreditCard, Cookie } from 'lucide-react'
 import BottomNav from '../components/BottomNav'
 
 const faqs = [
@@ -19,8 +19,55 @@ const faqs = [
   { q: 'Интересно ли детям?', a: 'Да! Квесты отлично подходят для детей от 8 лет — познавательный формат, активное движение, живые эмоции.' },
 ]
 
+const legal = [
+  {
+    Icon: Shield,
+    title: 'Политика конфиденциальности',
+    content: `Мы собираем минимально необходимые данные: адрес электронной почты и историю покупок.
+
+Email используется исключительно для:
+• авторизации в приложении;
+• отправки подтверждений оплаты;
+• уведомлений о запуске квестов в новых городах (только при согласии).
+
+Ваши данные не передаются третьим лицам, не продаются и не используются в рекламных целях без вашего согласия. Мы не храним платёжные данные — все транзакции обрабатываются через защищённую платёжную систему Airwallex.
+
+Вы вправе запросить удаление вашего аккаунта и всех связанных данных, написав нам на: support@quests-hk.com
+
+Используя приложение, вы соглашаетесь с настоящей политикой конфиденциальности.`,
+  },
+  {
+    Icon: CreditCard,
+    title: 'Условия оплаты',
+    content: `Оплата производится через платёжную систему Airwallex — международный провайдер, сертифицированный по стандарту PCI DSS.
+
+Что важно знать:
+• Платёж списывается единовременно в момент покупки.
+• Квест предоставляется сразу после подтверждения оплаты.
+• Все цены указаны в гонконгских долларах (HK$), если не указано иное.
+• Возврат средств: квест является цифровым продуктом. Возврат возможен только если доступ к квесту не был предоставлен по технической причине — в течение 24 часов с момента покупки.
+• По вопросам возврата пишите: support@quests-hk.com
+
+Безопасность: данные карты не хранятся на наших серверах. Транзакции шифруются по стандарту TLS 1.2+. Airwallex имеет лицензию на оказание платёжных услуг в Гонконге (лицензия MSO).`,
+  },
+  {
+    Icon: Cookie,
+    title: 'Политика использования cookies',
+    content: `Мы используем технические файлы cookie и localStorage исключительно для корректной работы приложения:
+
+• Сессия пользователя (JWT-токен) — хранится в localStorage для авторизации.
+• Выбранный город — запоминается для удобства.
+• Языковые настройки — хранятся локально.
+
+Мы не используем рекламные трекеры, пиксели социальных сетей или аналитику на основе cookies.
+
+Используя наше приложение, вы соглашаетесь с использованием технических cookies, необходимых для его работы. Вы можете очистить данные приложения в настройках браузера в любой момент.`,
+  },
+]
+
 export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
+  const [legalOpen, setLegalOpen] = useState<number | null>(null)
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
@@ -60,6 +107,35 @@ export default function FAQ() {
           <MessageCircle size={20} strokeWidth={2} />
           Написать в WhatsApp
         </a>
+
+        {/* Legal documents */}
+        <div className="mt-6">
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">Юридические документы</p>
+          <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+            {legal.map((doc, i) => (
+              <div key={i} className={i < legal.length - 1 ? 'border-b border-gray-50' : ''}>
+                <button
+                  onClick={() => setLegalOpen(legalOpen === i ? null : i)}
+                  className="w-full flex items-center gap-3 px-4 py-4 text-left"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 border border-gray-100">
+                    <doc.Icon size={15} className="text-gray-500" />
+                  </div>
+                  <span className="flex-1 text-sm font-semibold text-gray-800">{doc.title}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`flex-shrink-0 text-gray-300 transition-transform duration-200 ${legalOpen === i ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {legalOpen === i && (
+                  <div className="px-4 pb-5 text-sm text-gray-500 leading-relaxed whitespace-pre-line">
+                    {doc.content}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <BottomNav />

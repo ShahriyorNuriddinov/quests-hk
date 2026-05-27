@@ -198,26 +198,50 @@ export default function QuestDetail() {
           </div>
         </div>
 
-        {/* Details */}
-        <div className="mt-5 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
-          {[
-            quest.locationsCount && { Icon: MapPin, label: 'Локации', value: `${quest.locationsCount} интересных мест` },
-            quest.questionsCount && { Icon: HelpCircle, label: 'Вопросы', value: `${quest.questionsCount} раза придётся подумать` },
-            quest.transportCost && { Icon: Wallet, label: 'Транспорт и билеты', value: quest.transportCost },
-            quest.startPoint && { Icon: Rocket, label: 'Стартовая точка', value: quest.startPoint },
-            quest.endPoint && { Icon: Flag, label: 'Конец маршрута', value: quest.endPoint },
-          ].filter(Boolean).map(({ Icon, label, value }: any, i, arr) => (
-            <div key={label} className={`flex items-center gap-3 px-4 py-3.5 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
-              <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center flex-shrink-0 border border-gray-100">
-                <Icon size={15} className="text-gray-500" />
+        {/* Details — quest info */}
+        {[
+          quest.locationsCount && { Icon: MapPin, label: 'Локации', value: `${quest.locationsCount} интересных мест` },
+          quest.questionsCount && { Icon: HelpCircle, label: 'Вопросы', value: `${quest.questionsCount} раза придётся подумать` },
+          quest.transportCost && { Icon: Wallet, label: 'Транспорт и билеты', value: quest.transportCost },
+        ].filter(Boolean).length > 0 && (
+          <div className="mt-5 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+            {[
+              quest.locationsCount && { Icon: MapPin, label: 'Локации', value: `${quest.locationsCount} интересных мест` },
+              quest.questionsCount && { Icon: HelpCircle, label: 'Вопросы', value: `${quest.questionsCount} раза придётся подумать` },
+              quest.transportCost && { Icon: Wallet, label: 'Транспорт и билеты', value: quest.transportCost },
+            ].filter(Boolean).map(({ Icon, label, value }: any, i, arr) => (
+              <div key={label} className={`flex items-center gap-3 px-4 py-3.5 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center flex-shrink-0 border border-gray-100">
+                  <Icon size={15} className="text-gray-500" />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400 mb-0.5">{label}</div>
+                  <div className="text-sm font-semibold text-gray-800">{value}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-[11px] text-gray-400 mb-0.5">{label}</div>
-                <div className="text-sm font-semibold text-gray-800">{value}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Details — route points */}
+        {(quest.startPoint || quest.endPoint) && (
+          <div className="mt-3 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+            {[
+              quest.startPoint && { Icon: Rocket, label: 'Стартовая точка', value: quest.startPoint },
+              quest.endPoint && { Icon: Flag, label: 'Конец маршрута', value: quest.endPoint },
+            ].filter(Boolean).map(({ Icon, label, value }: any, i, arr) => (
+              <div key={label} className={`flex items-center gap-3 px-4 py-3.5 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center flex-shrink-0 border border-gray-100">
+                  <Icon size={15} className="text-gray-500" />
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-400 mb-0.5">{label}</div>
+                  <div className="text-sm font-semibold text-gray-800">{value}</div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Reviews */}
         {reviews.length > 0 && (

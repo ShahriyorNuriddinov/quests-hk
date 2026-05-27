@@ -13,7 +13,6 @@ interface AppEvent {
   createdAt: string
 }
 
-const EMPTY: Omit<AppEvent, 'id' | 'createdAt'> = { title: '', text: '', imageUrl: null, active: true, sortOrder: 0 }
 
 export default function AdminEvents() {
   const [events, setEvents] = useState<AppEvent[]>([])
@@ -178,8 +177,8 @@ function EventModal({ initial, onClose, onSaved }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center px-4 pt-4 pb-20" onClick={onClose}>
+      <div className="bg-white rounded-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="px-5 pt-5 pb-4 flex items-center justify-between border-b border-gray-100">
           <h2 className="font-extrabold text-base">{initial ? 'Редактировать' : 'Новое событие'}</h2>
           <button onClick={onClose} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
