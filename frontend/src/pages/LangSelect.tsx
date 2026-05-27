@@ -24,13 +24,13 @@ export default function LangSelect() {
       setShowOnboarding(true)
       setPending(null)
     } else {
-      navigate('/city')
+      navigate('/cities')
     }
   }
 
   function doneOnboarding() {
     localStorage.setItem('onboarded', '1')
-    navigate('/city')
+    navigate('/cities')
   }
 
   if (showOnboarding) return <Onboarding onDone={doneOnboarding} />
