@@ -54,6 +54,7 @@ export default function AdminQuestEdit() {
   const navigate = useNavigate()
   const isNew = id === 'new'
   const [form, setForm] = useState<QuestForm>(EMPTY)
+  const [cities, setCities] = useState<{code:string;name:string;flag:string}[]>([])
   const [steps, setSteps] = useState<Step[]>([])
   const [coverImage, setCoverImage] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -63,6 +64,10 @@ export default function AdminQuestEdit() {
   const [savingSteps, setSavingSteps] = useState(false)
   const [openStep, setOpenStep] = useState<number | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    api.get('/quests/cities').then(r => setCities(r.data)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!isNew) {
@@ -249,9 +254,10 @@ export default function AdminQuestEdit() {
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Город</label>
               <select value={form.city} onChange={e => set('city', e.target.value as never)}
                 className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent">
-                <option value="hk">🇭🇰 Hong Kong</option>
-                <option value="macau">🇲🇴 Macau</option>
-                <option value="guangzhou">🇨🇳 Guangzhou</option>
+                {cities.map(c => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+                ))}
+                {cities.length === 0 && <option value="hk">🇭🇰 Hong Kong</option>}
               </select>
             </div>
             <div className="px-4 py-3">
