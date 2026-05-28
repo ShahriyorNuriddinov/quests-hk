@@ -14,6 +14,7 @@ export default function Auth() {
   const [step, setStep] = useState<'email' | 'code'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [agreed, setAgreed] = useState(false)
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault()
@@ -63,8 +64,21 @@ export default function Auth() {
               required
               className="border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#FFD600] focus:ring-2 focus:ring-[#FFD600]/30"
             />
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={e => setAgreed(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded accent-[#FFD600] flex-shrink-0"
+              />
+              <span className="text-xs text-gray-500 leading-relaxed">
+                Соглашаюсь с{' '}
+                <a href="/faq" className="text-gray-700 underline">политикой конфиденциальности</a>
+                {' '}и условиями использования сервиса
+              </span>
+            </label>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" disabled={loading} className="btn-yellow disabled:opacity-60">
+            <button type="submit" disabled={loading || !agreed} className="btn-yellow disabled:opacity-60">
               {loading ? '...' : t('auth.sendCode')}
             </button>
           </form>
