@@ -46,7 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function verifyCode(email: string, code: string) {
     const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
     if (error) throw error
-    const r = await api.post('/auth/supabase-sync', { access_token: data.session!.access_token })
+    if (!data.session) throw new Error('Session not returned')
+    const r = await api.post('/auth/supabase-sync', { access_token: data.session.access_token })
     localStorage.setItem('token', r.data.token)
     setUser(r.data.user)
   }

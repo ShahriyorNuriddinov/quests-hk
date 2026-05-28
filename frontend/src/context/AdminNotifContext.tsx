@@ -61,7 +61,7 @@ export function AdminNotifProvider({ children }: { children: ReactNode }) {
     console.log('[SSE] connecting to', url)
 
     let es: EventSource
-    let retryTimer: ReturnType<typeof setTimeout> | null = null
+    const retryTimerRef = { current: null as ReturnType<typeof setTimeout> | null }
 
     function connect() {
       es = new EventSource(url)
@@ -71,7 +71,6 @@ export function AdminNotifProvider({ children }: { children: ReactNode }) {
       es.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data)
-          console.log('[SSE] event:', data)
           if (data.type === 'connected') return
           const notif: AdminNotif = {
             id: ++idRef.current,
@@ -89,11 +88,9 @@ export function AdminNotifProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      es.onerror = (err) => {
-        console.error('[SSE] error', err, 'readyState:', es.readyState)
+      es.onerror = () => {
         es.close()
-        // retry after 5s
-        retryTimer = setTimeout(connect, 5000)
+        retryTimerRef.current = setTimeout(connect, 5000)
       }
     }
 
@@ -101,7 +98,7 @@ export function AdminNotifProvider({ children }: { children: ReactNode }) {
 
     return () => {
       es?.close()
-      if (retryTimer) clearTimeout(retryTimer)
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
       if (toastTimer.current) clearTimeout(toastTimer.current)
     }
   }, [user])

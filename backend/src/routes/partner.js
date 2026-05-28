@@ -95,6 +95,7 @@ router.patch('/quests/:id', async (req, res) => {
     const data = { ...req.body }
     if (req.user.role !== 'admin' && data.status === 'published') data.status = 'pending'
     const quest = await updateQuest(req.params.id, data)
+    if (!quest) return res.status(404).json({ error: 'Quest not found' })
     if (data.status === 'pending') {
       broadcast('quest_pending', { message: `Партнёр отправил квест на проверку: ${quest.title}`, questId: quest._id })
     }

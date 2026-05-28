@@ -377,6 +377,15 @@ router.post('/partners', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+// Publish/unpublish partner quest (admin approval) — must be BEFORE /partners/:userId
+router.patch('/partners/quests/:questId/status', async (req, res) => {
+  try {
+    const { status } = req.body
+    await pool.query('UPDATE quests SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.questId])
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 // Update partner profile
 router.patch('/partners/:userId', async (req, res) => {
   try {
@@ -429,15 +438,6 @@ router.post('/partners/:userId/payout', async (req, res) => {
     )
     const total = rows.reduce((s, r) => s + parseFloat(r.amount), 0)
     res.json({ ok: true, paid: total })
-  } catch (err) { res.status(500).json({ error: err.message }) }
-})
-
-// Publish/unpublish partner quest (admin approval)
-router.patch('/partners/quests/:questId/status', async (req, res) => {
-  try {
-    const { status } = req.body
-    await pool.query('UPDATE quests SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.questId])
-    res.json({ ok: true })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 

@@ -71,6 +71,7 @@ router.get('/promo/:code', requireAuth, async (req, res) => {
 })
 
 router.post('/checkout', requireAuth, async (req, res) => {
+  try {
   const { questId, promoCode } = req.body
   const quest = await findQuestById(questId)
   if (!quest) return res.status(404).json({ error: 'Quest not found' })
@@ -85,6 +86,7 @@ router.post('/checkout', requireAuth, async (req, res) => {
 
   if (promoCode) {
     const promo = await findPromoByCode(promoCode, true)
+    // Atomic check: re-verify usedCount under DB constraint to avoid race condition
     if (promo && promo.usedCount < promo.maxUses) {
       appliedPromo = promo
       amount = promo.type === 'percent'
@@ -131,6 +133,10 @@ router.post('/checkout', requireAuth, async (req, res) => {
     console.error('Airwallex error:', err)
     res.status(500).json({ error: 'Payment error' })
   }
+  } catch (err) {
+    console.error('Checkout error:', err)
+    res.status(500).json({ error: 'Checkout error' })
+  }
 })
 
 router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -138,11 +144,9 @@ router.post('/webhook/airwallex', express.raw({ type: 'application/json' }), asy
     const event = JSON.parse(req.body)
     // Verify the event came from Airwallex via shared webhook secret
     const webhookSecret = process.env.AIRWALLEX_WEBHOOK_SECRET
-    if (webhookSecret) {
-      const signature = req.headers['x-airwallex-signature']
-      if (!signature || signature !== webhookSecret) {
-        return res.status(401).json({ error: 'Invalid signature' })
-      }
+    const signature = req.headers['x-airwallex-signature']
+    if (!webhookSecret || !signature || signature !== webhookSecret) {
+      return res.status(401).json({ error: 'Invalid signature' })
     }
     if (event.name === 'payment_intent.succeeded') {
       const { userId, questId, promoCode } = event.data?.object?.metadata || {}

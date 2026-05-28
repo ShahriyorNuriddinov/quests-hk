@@ -14,27 +14,31 @@ export default function Payment() {
       navigate('/quests', { replace: true })
       return
     }
-    // Poll payment intent status
     let tries = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
+    let cancelled = false
+
     const poll = async () => {
       try {
         const r = await api.get(`/payments/intent/${intentId}`)
+        if (cancelled) return
         if (r.data.status === 'succeeded') {
           setStatus('success')
-          setTimeout(() => navigate(`/quest/${questId}/play`, { replace: true }), 1500)
+          timer = setTimeout(() => navigate(`/quest/${questId}/play`, { replace: true }), 1500)
         } else if (r.data.status === 'failed') {
           setStatus('error')
         } else if (tries < 20) {
           tries++
-          setTimeout(poll, 1500)
+          timer = setTimeout(poll, 1500)
         } else {
           setStatus('error')
         }
       } catch {
-        setStatus('error')
+        if (!cancelled) setStatus('error')
       }
     }
     poll()
+    return () => { cancelled = true; if (timer) clearTimeout(timer) }
   }, [intentId, questId])
 
   if (status === 'success') return (
