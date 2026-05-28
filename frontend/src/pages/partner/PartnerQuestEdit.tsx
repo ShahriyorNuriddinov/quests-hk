@@ -55,6 +55,8 @@ const STATUS_INFO: Record<string, { label: string; cls: string }> = {
   pending:   { label: 'На проверке', cls: 'bg-yellow-100 text-yellow-700' },
 }
 
+interface City { code: string; name: string; flag: string; active: boolean }
+
 export default function PartnerQuestEdit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -68,7 +70,12 @@ export default function PartnerQuestEdit() {
   const [saving, setSaving] = useState(false)
   const [savingSteps, setSavingSteps] = useState(false)
   const [openStep, setOpenStep] = useState<number | null>(null)
+  const [cities, setCities] = useState<City[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    api.get('/quests/cities').then(r => setCities(r.data)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!isNew) {
@@ -254,9 +261,10 @@ export default function PartnerQuestEdit() {
               <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Город</label>
               <select value={form.city} onChange={e => set('city', e.target.value as never)}
                 className="mt-1 w-full text-sm font-bold text-gray-800 focus:outline-none bg-transparent">
-                <option value="hk">🇭🇰 Hong Kong</option>
-                <option value="macau">🇲🇴 Macau</option>
-                <option value="guangzhou">🇨🇳 Guangzhou</option>
+                {cities.map(c => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+                ))}
+                {cities.length === 0 && <option value="hk">🇭🇰 Hong Kong</option>}
               </select>
             </div>
             <div className="px-4 py-3">
