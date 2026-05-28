@@ -26,6 +26,10 @@ async function recordPartnerEarning(quest, buyerId, paidAmount) {
 
 const router = Router()
 
+router.get('/mode', (_, res) => {
+  res.json({ demo: !process.env.AIRWALLEX_CLIENT_ID })
+})
+
 function airwallexBase() {
   return process.env.AIRWALLEX_ENV === 'demo'
     ? 'https://api-demo.airwallex.com/api/v1'

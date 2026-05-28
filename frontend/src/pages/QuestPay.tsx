@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CreditCard, Smartphone, Tag, Shield, ChevronDown, ChevronUp, CheckCircle2, Loader2 } from 'lucide-react'
+import { CreditCard, Smartphone, Tag, Shield, ChevronDown, ChevronUp, CheckCircle2, Loader2, FlaskConical } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
@@ -37,6 +37,91 @@ function calcFinal(price: number, promo: PromoInfo | null) {
     : Math.max(0, price - promo.discount)
 }
 
+function DemoCard({ onPay, loading, amount, currency }: {
+  onPay: () => void; loading: boolean; amount: number; currency: string
+}) {
+  const [cardNum, setCardNum] = useState('4111 1111 1111 1111')
+  const [expiry, setExpiry] = useState('12/26')
+  const [cvv, setCvv] = useState('123')
+  const [name, setName] = useState('TEST USER')
+
+  function formatCard(v: string) {
+    return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
+  }
+  function formatExpiry(v: string) {
+    const d = v.replace(/\D/g, '').slice(0, 4)
+    return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      {/* Demo banner */}
+      <div className="bg-amber-50 border-b border-amber-100 px-4 py-2.5 flex items-center gap-2">
+        <FlaskConical size={13} className="text-amber-500 flex-shrink-0" />
+        <p className="text-xs font-semibold text-amber-700">Тестовый режим — реальные деньги не списываются</p>
+      </div>
+
+      {/* Card visual */}
+      <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-4 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-8 -translate-x-8" />
+        <p className="text-[10px] text-white/50 uppercase tracking-widest mb-3">Test Card</p>
+        <p className="font-mono text-base tracking-widest mb-4">{cardNum || '•••• •••• •••• ••••'}</p>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[9px] text-white/40 uppercase">Держатель</p>
+            <p className="text-xs font-semibold tracking-wider">{name || 'CARD HOLDER'}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[9px] text-white/40 uppercase">Срок</p>
+            <p className="text-xs font-semibold">{expiry || 'MM/YY'}</p>
+          </div>
+          <div className="w-10 h-7 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-500 opacity-90" />
+        </div>
+      </div>
+
+      {/* Card fields */}
+      <div className="px-4 pt-4 pb-2 flex flex-col gap-3">
+        <div>
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Номер карты</label>
+          <input value={cardNum} onChange={e => setCardNum(formatCard(e.target.value))}
+            className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:border-[#FFD600]" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Срок действия</label>
+            <input value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
+              placeholder="MM/YY" maxLength={5}
+              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:border-[#FFD600]" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CVV</label>
+            <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+              placeholder="•••" maxLength={3} type="password"
+              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:border-[#FFD600]" />
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Имя на карте</label>
+          <input value={name} onChange={e => setName(e.target.value.toUpperCase())}
+            className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:border-[#FFD600]" />
+        </div>
+      </div>
+
+      <div className="px-4 pb-4">
+        <button onClick={onPay} disabled={loading}
+          className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base disabled:opacity-50 flex items-center justify-center gap-2 mt-2">
+          {loading
+            ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Обрабатываем...</>
+            : `Оплатить ${amount} ${currency}`
+          }
+        </button>
+        <p className="text-center text-[10px] text-amber-500 mt-2">🧪 Тестовая транзакция — деньги не спишутся</p>
+      </div>
+    </div>
+  )
+}
+
 export default function QuestPay() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -50,52 +135,42 @@ export default function QuestPay() {
   const [method, setMethod] = useState('card_int')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isDemo, setIsDemo] = useState(false)
   const promoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return }
-    // Already purchased → redirect to play
     if (user.purchasedQuests.includes(id!)) {
-      navigate(`/quest/${id}/play`, { replace: true })
-      return
+      navigate(`/quest/${id}/play`, { replace: true }); return
     }
     api.get(`/quests/${id}`).then(r => setQuest(r.data))
+    api.get('/payments/mode').then(r => setIsDemo(r.data.demo)).catch(() => {})
   }, [id, user])
 
-  // Debounced promo validation
   useEffect(() => {
-    setPromoInfo(null)
-    setPromoError('')
+    setPromoInfo(null); setPromoError('')
     if (!promo.trim()) return
     if (promoTimer.current) clearTimeout(promoTimer.current)
     promoTimer.current = setTimeout(async () => {
       setPromoChecking(true)
       try {
         const r = await api.get(`/payments/promo/${promo.trim()}`)
-        setPromoInfo(r.data)
-        setPromoError('')
-      } catch {
-        setPromoError('Промо код не найден или истёк')
-      } finally {
-        setPromoChecking(false)
-      }
+        setPromoInfo(r.data); setPromoError('')
+      } catch { setPromoError('Промо код не найден или истёк') }
+      finally { setPromoChecking(false) }
     }, 600)
   }, [promo])
 
   async function handlePay() {
-    setError('')
-    setLoading(true)
+    setError(''); setLoading(true)
     try {
       const r = await api.post('/payments/checkout', {
         questId: id,
         promoCode: promoInfo ? promoInfo.code : undefined,
       })
       window.location.href = r.data.url
-    } catch {
-      setError('Ошибка оплаты. Попробуйте ещё раз.')
-    } finally {
-      setLoading(false)
-    }
+    } catch { setError('Ошибка оплаты. Попробуйте ещё раз.') }
+    finally { setLoading(false) }
   }
 
   if (!quest) return (
@@ -118,6 +193,11 @@ export default function QuestPay() {
           ←
         </button>
         <h1 className="text-lg font-extrabold">Оформление</h1>
+        {isDemo && (
+          <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+            <FlaskConical size={10} /> DEMO
+          </span>
+        )}
       </div>
 
       <div className="px-4 pt-4 flex flex-col gap-3 max-w-lg mx-auto">
@@ -133,9 +213,7 @@ export default function QuestPay() {
             <div className="absolute bottom-3 left-4 right-4">
               <p className="text-white font-extrabold text-base leading-snug">{quest.title}</p>
               {(quest.duration || quest.distance) && (
-                <p className="text-white/70 text-xs mt-0.5">
-                  {[quest.duration, quest.distance].filter(Boolean).join(' · ')}
-                </p>
+                <p className="text-white/70 text-xs mt-0.5">{[quest.duration, quest.distance].filter(Boolean).join(' · ')}</p>
               )}
             </div>
           </div>
@@ -163,132 +241,116 @@ export default function QuestPay() {
           </div>
         </div>
 
-        {/* Payment methods */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-4 pt-4 pb-2">
-            Способ оплаты
-          </p>
-          {METHODS.map((m, i) => (
-            <label key={m.id}
-              className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors ${
-                method === m.id ? 'bg-yellow-50' : 'bg-white'
-              } ${i < METHODS.length - 1 ? 'border-b border-gray-50' : ''}`}>
-              <input type="radio" name="method" value={m.id} checked={method === m.id}
-                onChange={() => setMethod(m.id)} className="hidden" />
-              <span className="text-xl w-7 text-center flex-shrink-0">{m.icon}</span>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-800">{m.label}</p>
-                <p className="text-xs text-gray-400">{m.sub}</p>
-              </div>
-              <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                method === m.id ? 'border-[#FFD600] bg-[#FFD600]' : 'border-gray-200'
-              }`}>
-                {method === m.id && <div className="w-2 h-2 rounded-full bg-white" />}
-              </div>
-            </label>
-          ))}
-        </div>
+        {/* Demo card OR regular payment methods */}
+        {isDemo && !isFreePartner ? (
+          <DemoCard onPay={handlePay} loading={loading} amount={finalPrice} currency={quest.currency} />
+        ) : !isFreePartner ? (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-4 pt-4 pb-2">Способ оплаты</p>
+            {METHODS.map((m, i) => (
+              <label key={m.id}
+                className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors ${
+                  method === m.id ? 'bg-yellow-50' : 'bg-white'
+                } ${i < METHODS.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <input type="radio" name="method" value={m.id} checked={method === m.id}
+                  onChange={() => setMethod(m.id)} className="hidden" />
+                <span className="text-xl w-7 text-center flex-shrink-0">{m.icon}</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-800">{m.label}</p>
+                  <p className="text-xs text-gray-400">{m.sub}</p>
+                </div>
+                <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                  method === m.id ? 'border-[#FFD600] bg-[#FFD600]' : 'border-gray-200'
+                }`}>
+                  {method === m.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                </div>
+              </label>
+            ))}
+          </div>
+        ) : null}
 
         {/* Promo code */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <button type="button" onClick={() => setPromoOpen(o => !o)}
-            className="w-full flex items-center gap-3 px-4 py-3.5">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              promoInfo ? 'bg-green-50' : 'bg-gray-50'
-            }`}>
-              {promoInfo
-                ? <CheckCircle2 size={15} className="text-green-500" />
-                : <Tag size={15} className="text-gray-400" />
-              }
-            </div>
-            <div className="flex-1 text-left">
-              <span className="text-sm font-semibold text-gray-700">
-                {promoInfo ? promo : (promo ? promo : 'Промо код')}
-              </span>
-              {promoInfo && (
-                <p className="text-xs text-green-600 font-medium mt-0.5">
-                  −{promoInfo.discount}{promoInfo.type === 'percent' ? '%' : ` ${quest.currency}`} скидка применена
-                </p>
-              )}
-            </div>
-            {promoOpen
-              ? <ChevronUp size={16} className="text-gray-300" />
-              : <ChevronDown size={16} className="text-gray-300" />
-            }
-          </button>
-
-          {promoOpen && (
-            <div className="px-4 pb-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={promo}
-                  onChange={e => setPromo(e.target.value.toUpperCase())}
-                  placeholder="Введите промо код"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none uppercase tracking-widest font-semibold pr-10 ${
-                    promoInfo ? 'border-green-300 bg-green-50' :
-                    promoError ? 'border-red-300 bg-red-50' :
-                    'border-gray-200 focus:border-[#FFD600]'
-                  }`}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {promoChecking && <Loader2 size={15} className="text-gray-400 animate-spin" />}
-                  {!promoChecking && promoInfo && <CheckCircle2 size={15} className="text-green-500" />}
-                </div>
+        {!isFreePartner && (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <button type="button" onClick={() => setPromoOpen(o => !o)}
+              className="w-full flex items-center gap-3 px-4 py-3.5">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${promoInfo ? 'bg-green-50' : 'bg-gray-50'}`}>
+                {promoInfo ? <CheckCircle2 size={15} className="text-green-500" /> : <Tag size={15} className="text-gray-400" />}
               </div>
-              {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
-              {promoInfo && (
-                <p className="text-xs text-green-600 font-semibold mt-1.5">
-                  ✓ Итого: {finalPrice} {quest.currency}
-                  {hasDiscount && ` (−${quest.price - finalPrice} ${quest.currency})`}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+              <div className="flex-1 text-left">
+                <span className="text-sm font-semibold text-gray-700">{promoInfo ? promo : (promo || 'Промо код')}</span>
+                {promoInfo && (
+                  <p className="text-xs text-green-600 font-medium mt-0.5">
+                    −{promoInfo.discount}{promoInfo.type === 'percent' ? '%' : ` ${quest.currency}`} скидка применена
+                  </p>
+                )}
+              </div>
+              {promoOpen ? <ChevronUp size={16} className="text-gray-300" /> : <ChevronDown size={16} className="text-gray-300" />}
+            </button>
+            {promoOpen && (
+              <div className="px-4 pb-4">
+                <div className="relative">
+                  <input type="text" value={promo} onChange={e => setPromo(e.target.value.toUpperCase())}
+                    placeholder="Введите промо код"
+                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none uppercase tracking-widest font-semibold pr-10 ${
+                      promoInfo ? 'border-green-300 bg-green-50' : promoError ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#FFD600]'
+                    }`} />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {promoChecking && <Loader2 size={15} className="text-gray-400 animate-spin" />}
+                    {!promoChecking && promoInfo && <CheckCircle2 size={15} className="text-green-500" />}
+                  </div>
+                </div>
+                {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Trust badges */}
         <div className="flex items-center justify-center gap-4 py-1">
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <Shield size={12} />
-            SSL-шифрование
-          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-400"><Shield size={12} />SSL</div>
           <div className="w-px h-3 bg-gray-200" />
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <CreditCard size={12} />
-            Airwallex
-          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-400"><CreditCard size={12} />Airwallex</div>
           <div className="w-px h-3 bg-gray-200" />
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <Smartphone size={12} />
-            3D Secure
-          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-400"><Smartphone size={12} />3D Secure</div>
         </div>
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
       </div>
 
-      {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={handlePay}
-            disabled={loading}
-            className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading
-              ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Обрабатываем...</>
-              : isFreePartner
-                ? `🎁 Получить бесплатно`
+      {/* Bottom CTA — shown only when NOT demo and NOT free */}
+      {!isDemo && !isFreePartner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4">
+          <div className="max-w-lg mx-auto">
+            <button onClick={handlePay} disabled={loading}
+              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base disabled:opacity-50 flex items-center justify-center gap-2">
+              {loading
+                ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Обрабатываем...</>
                 : `Оплатить ${finalPrice} ${quest.currency}`
-            }
-          </button>
-          <p className="text-center text-[11px] text-gray-400 mt-2.5 leading-relaxed">
-            Нажимая «Оплатить», вы соглашаетесь с{' '}
-            <a href="/faq" className="text-gray-500 underline">политикой конфиденциальности</a>
-          </p>
+              }
+            </button>
+            <p className="text-center text-[11px] text-gray-400 mt-2.5">
+              Нажимая «Оплатить», вы соглашаетесь с{' '}
+              <a href="/faq" className="text-gray-500 underline">политикой конфиденциальности</a>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Free partner quest CTA */}
+      {isFreePartner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4">
+          <div className="max-w-lg mx-auto">
+            <button onClick={handlePay} disabled={loading}
+              className="w-full bg-[#FFD600] text-black font-bold rounded-2xl py-4 text-base disabled:opacity-50 flex items-center justify-center gap-2">
+              {loading
+                ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Обрабатываем...</>
+                : '🎁 Получить бесплатно'
+              }
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
