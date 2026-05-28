@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CreditCard, Smartphone, Tag, Shield, ChevronDown, ChevronUp, CheckCircle2, Loader2, FlaskConical } from 'lucide-react'
+import { CreditCard, Smartphone, Tag, Shield, ChevronDown, ChevronUp, CheckCircle2, Loader2 } from 'lucide-react'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
@@ -55,12 +55,6 @@ function DemoCard({ onPay, loading, amount, currency }: {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      {/* Demo banner */}
-      <div className="bg-amber-50 border-b border-amber-100 px-4 py-2.5 flex items-center gap-2">
-        <FlaskConical size={13} className="text-amber-500 flex-shrink-0" />
-        <p className="text-xs font-semibold text-amber-700">Тестовый режим — реальные деньги не списываются</p>
-      </div>
-
       {/* Card visual */}
       <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-4 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-8 translate-x-8" />
@@ -116,7 +110,6 @@ function DemoCard({ onPay, loading, amount, currency }: {
             : `Оплатить ${amount} ${currency}`
           }
         </button>
-        <p className="text-center text-[10px] text-amber-500 mt-2">🧪 Тестовая транзакция — деньги не спишутся</p>
       </div>
     </div>
   )
@@ -193,11 +186,6 @@ export default function QuestPay() {
           ←
         </button>
         <h1 className="text-lg font-extrabold">Оформление</h1>
-        {isDemo && (
-          <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-            <FlaskConical size={10} /> DEMO
-          </span>
-        )}
       </div>
 
       <div className="px-4 pt-4 flex flex-col gap-3 max-w-lg mx-auto">
